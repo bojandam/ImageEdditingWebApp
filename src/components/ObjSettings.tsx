@@ -17,7 +17,7 @@ interface objProps {
   stroke?: string | TFiller | null;
 }
 
-const Settings = ({ canvas }: props) => {
+const ObjSettings = ({ canvas }: props) => {
   const [selectedObject, setSelectedObject] = useState<any>(null);
   const [objProperties, setObjProperties] = useState<objProps>({});
   const [isEmpty, setIsEmpty] = useState<boolean>(true);
@@ -158,90 +158,78 @@ const Settings = ({ canvas }: props) => {
 
   return (
     <>
-      <div className="" style={{ width: "300px" }}>
-        <Accordion defaultActiveKey="0">
-          <Accordion.Item eventKey="0">
-            <Accordion.Header>Properties</Accordion.Header>
-            <Accordion.Body className="">
-              <Row className="flex-wrap ps-2 pe-1" style={{}}>
-                <PTextField
-                  label="W:"
-                  value={objProperties.width}
-                  formId="widthForm"
-                  unit="px"
-                  onChange={handleWidthChange}
-                />
-                <PTextField
-                  label="H:"
-                  value={objProperties.height}
-                  formId="widthForm"
-                  unit="px"
-                  onChange={handleHeightChange}
-                />
-                {/* </Row><Row> */}
-                <PTextField
-                  label="X:"
-                  value={objProperties.left}
-                  formId="leftForm"
-                  unit="px"
-                  onChange={handleLeftChange}
-                />
-                <PTextField
-                  label="Y:"
-                  value={objProperties.top}
-                  formId="topForm"
-                  unit="px"
-                  onChange={handleTopChange}
-                />
-                {/* </Row>
+      <Row className="flex-wrap ps-2 pe-1" style={{}}>
+        <PTextField
+          label="W:"
+          value={objProperties.width}
+          formId="widthForm"
+          unit="px"
+          onChange={handleWidthChange}
+        />
+        <PTextField
+          label="H:"
+          value={objProperties.height}
+          formId="widthForm"
+          unit="px"
+          onChange={handleHeightChange}
+        />
+        {/* </Row><Row> */}
+        <PTextField
+          label="X:"
+          value={objProperties.left}
+          formId="leftForm"
+          unit="px"
+          onChange={handleLeftChange}
+        />
+        <PTextField
+          label="Y:"
+          value={objProperties.top}
+          formId="topForm"
+          unit="px"
+          onChange={handleTopChange}
+        />
+        {/* </Row>
                     <Row> */}
-                <PTextField
-                  label="R:"
-                  value={objProperties.radius}
-                  formId="radiusForm"
-                  unit="px"
-                  onChange={handleRadiusChange}
-                />
-                {/* </Row>
+        <PTextField
+          label="R:"
+          value={objProperties.radius}
+          formId="radiusForm"
+          unit="px"
+          onChange={handleRadiusChange}
+        />
+        {/* </Row>
               <Row> */}
-                <PTextField
-                  label="C:"
-                  value={objProperties.fill?.toString()}
-                  formId="fillForm"
-                  type="color"
-                  onChange={handleFillChange}
-                />
-              </Row>
-              <Row>
-                <PTextField
-                  label="BC:"
-                  value={objProperties.stroke?.toString()}
-                  formId="strokeForm"
-                  type="color"
-                  onChange={handleStrokeChange}
-                />
-                <PTextField
-                  label="BW:"
-                  value={objProperties.strokeWidth}
-                  formId="strokeWidthForm"
-                  unit="px"
-                  onChange={handleStrokeWidthChange}
-                />
-              </Row>
-              <Row>
-                {isEmpty && (
-                  <p className="fs-6 ">
-                    {" "}
-                    Select an object to modifiy their properties
-                  </p>
-                )}
-              </Row>
-            </Accordion.Body>
-          </Accordion.Item>
-        </Accordion>
-      </div>
+        <PTextField
+          label="C:"
+          value={objProperties.fill?.toString()}
+          formId="fillForm"
+          type="color"
+          onChange={handleFillChange}
+        />
+        {/* {</Row>
+              <Row>} */}
+        <PTextField
+          label="BC:"
+          value={objProperties.stroke?.toString()}
+          formId="strokeForm"
+          type="color"
+          onChange={handleStrokeChange}
+        />
+        <PTextField
+          label="BW:"
+          value={objProperties.strokeWidth}
+          formId="strokeWidthForm"
+          unit="px"
+          onChange={handleStrokeWidthChange}
+        />
+        {/* {</Row>
+              <Row>} */}
+        {isEmpty && (
+          <p className="fs-6 "> Select an object to modifiy their properties</p>
+        )}
+      </Row>
     </>
   );
 };
 
-export default Settings;
+export default ObjSettings;

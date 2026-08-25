@@ -6,9 +6,9 @@ interface Props {
   label: string | ReactNode;
   value: number | string | undefined;
   formId: string;
+  onChange: SyntheticEvent;
   type?: string;
   unit?: string;
-  onChange?: SyntheticEvent;
 }
 
 const PTextField = ({ label, value, formId, type, unit, onChange }: Props) => {
