@@ -10,6 +10,7 @@ const App = () => {
   const canvasRef = useRef(null);
   const fakeCanvasRect = useRef<Rect>(null);
   const fakeCanvasGroup = useRef<Group>(null);
+  const fakeCanvasClip = useRef<Rect>(null);
   const [windowWidth, setWindowWidth] = useState<number>(innerWidth);
   const [windowHeight, setWindowHeight] = useState<number>(innerHeight);
   useEffect(() => {
@@ -54,7 +55,9 @@ const App = () => {
           fill: "#FFAAAA",
           stroke: "#FFFFFF00",
         });
+        fakeCanvasGroup.current?.add(square);
         canvas?.add(square);
+        square.clipPath = fake;
       },
     },
     {
@@ -62,13 +65,16 @@ const App = () => {
       icon: "circle",
       onClick: () => {
         const circle = new Circle({
-          top: 200,
-          left: 200,
           fill: "#AAFFFF",
           radius: 40,
           stroke: "#FFFFFF00",
+          top: canvas?.getCenterPoint().y,
+          left: canvas?.getCenterPoint().x,
         });
-        if (canvas) canvas.add(circle);
+        fakeCanvasGroup.current?.add(circle);
+        canvas?.add(circle);
+        console.log(fakeCanvasClip.current);
+        circle.clipPath = fakeCanvasClip.current;
       },
     },
   ];
@@ -113,6 +119,7 @@ const App = () => {
                     canvas={canvas}
                     fakeCanvasRect={fakeCanvasRect}
                     fakeCanvasGroup={fakeCanvasGroup}
+                    fakeCanvasClip={fakeCanvasClip}
                   ></CanvasSettings>
                 </Accordion.Body>
               </Accordion.Item>

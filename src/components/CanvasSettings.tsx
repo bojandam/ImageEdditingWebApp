@@ -6,16 +6,22 @@ import React, {
   type Ref,
 } from "react";
 import PTextField from "./PTextField";
-import { Group, Rect, type Canvas } from "fabric";
+import { Circle, Group, Rect, type Canvas } from "fabric";
 import { Col, Row } from "react-bootstrap";
 
 interface Props {
   canvas: Canvas | undefined;
   fakeCanvasRect: Ref<Rect>;
   fakeCanvasGroup: Ref<Group>;
+  fakeCanvasClip: Ref<Rect>;
 }
 
-const CanvasSettings = ({ canvas, fakeCanvasRect, fakeCanvasGroup }: Props) => {
+const CanvasSettings = ({
+  canvas,
+  fakeCanvasRect,
+  fakeCanvasGroup,
+  fakeCanvasClip,
+}: Props) => {
   const [width, setWidth] = useState<number>();
   const [height, setHeight] = useState<number>();
   const [zoom, setZoom] = useState<number>();
@@ -43,11 +49,21 @@ const CanvasSettings = ({ canvas, fakeCanvasRect, fakeCanvasGroup }: Props) => {
         fill: "#FFFFFF",
         selectable: false,
         hoverCursor: "default",
+        stroke: "#FFFFFF",
+        strokeWidth: 1,
       });
       fakeCanvasGroup.current = new Group([fakeCanvasRect.current], {
         left: canvas.getCenterPoint().x,
         top: canvas.getCenterPoint().y,
       });
+      fakeCanvasClip.current = new Rect({
+        width: fakeWidth,
+        height: fakeHeight,
+        left: canvas.getCenterPoint().x,
+        top: canvas.getCenterPoint().y,
+        absolutePositioned: true,
+      });
+      // fakeCanvasGroup.current.add(fakeCanvasClip.current);
       canvas.add(fakeCanvasRect.current);
       canvas.requestRenderAll();
     }
@@ -55,13 +71,17 @@ const CanvasSettings = ({ canvas, fakeCanvasRect, fakeCanvasGroup }: Props) => {
 
   useEffect(() => {
     if (canvas) {
-      console.log("Canvas resize");
+      console.log("Canvas reposition");
       canvas.setDimensions({ width: width, height: height });
       if (fakeCanvasGroup.current) {
-        fakeCanvasGroup.current.set({
+        const pos = {
           left: canvas.getCenterPoint().x,
           top: canvas.getCenterPoint().y,
-        });
+        };
+        fakeCanvasClip.current.set(pos);
+        fakeCanvasGroup.current.set(pos);
+        fakeCanvasRect.current.set({ left: 0, top: 0 });
+        canvas.getActiveObject()?.setCoords();
         console.log("Reposition fakeCanvas: ", fakeCanvasGroup.current);
       }
       canvas.renderAll();
@@ -71,10 +91,13 @@ const CanvasSettings = ({ canvas, fakeCanvasRect, fakeCanvasGroup }: Props) => {
   // Set fakeCanvas dimensions
   useEffect(() => {
     if (fakeCanvasRect.current && canvas) {
-      fakeCanvasRect.current.set({
+      const siz = {
         width: fakeWidth,
         height: fakeHeight,
-      });
+      };
+      fakeCanvasRect.current.set(siz);
+      fakeCanvasClip.current.set(siz);
+
       fakeCanvasRect.current.setCoords();
       console.log("Resizing fake canvas: ", fakeCanvasRect.current);
       canvas.renderAll();

@@ -1,5 +1,5 @@
 import { useEffect, useState, type BaseSyntheticEvent } from "react";
-import { Canvas, FabricObject, type TFiller } from "fabric";
+import { Canvas, FabricObject, Rect, type TFiller } from "fabric";
 import { Accordion, Row } from "react-bootstrap";
 import PTextField from "./PTextField";
 interface props {
@@ -55,8 +55,8 @@ const ObjSettings = ({ canvas }: props) => {
       p.radius = Math.round(obj.radius * obj.scaleX);
     }
 
-    p.left = Math.round(obj.getX());
-    p.top = Math.round(obj.getY());
+    p.left = Math.round(obj.getRelativeX());
+    p.top = Math.round(obj.getRelativeY());
     p.fill = obj.fill;
     p.stroke = obj.stroke;
     p.strokeWidth = obj.strokeWidth;
@@ -99,7 +99,7 @@ const ObjSettings = ({ canvas }: props) => {
   const handleTopChange = (e: BaseSyntheticEvent) => {
     const intValue = parseToInt(e.target?.value);
 
-    if (selectedObject && intValue >= 0) {
+    if (selectedObject && (intValue >= 0 || intValue < 0)) {
       setObjProperties({ ...objProperties, top: intValue });
       selectedObject.set({ top: intValue });
       selectedObject.setCoords();
@@ -109,7 +109,7 @@ const ObjSettings = ({ canvas }: props) => {
   const handleLeftChange = (e: BaseSyntheticEvent) => {
     const intValue = parseToInt(e.target?.value);
 
-    if (selectedObject && intValue >= 0) {
+    if (selectedObject && (intValue >= 0 || intValue < 0)) {
       setObjProperties({ ...objProperties, left: intValue });
       selectedObject.set({ left: intValue });
       selectedObject.setCoords();
