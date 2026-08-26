@@ -1,15 +1,26 @@
-import { useEffect, useState, type BaseSyntheticEvent } from "react";
+import React, {
+  useEffect,
+  useRef,
+  useState,
+  type BaseSyntheticEvent,
+  type Ref,
+} from "react";
 import PTextField from "./PTextField";
-import type { Canvas } from "fabric";
+import { Group, Rect, type Canvas } from "fabric";
+import { Col, Row } from "react-bootstrap";
 
 interface Props {
   canvas: Canvas | undefined;
+  fakeCanvasRect: Ref<Rect>;
+  fakeCanvasGroup: Ref<Group>;
 }
 
-const CanvasSettings = ({ canvas }: Props) => {
+const CanvasSettings = ({ canvas, fakeCanvasRect, fakeCanvasGroup }: Props) => {
   const [width, setWidth] = useState<number>();
   const [height, setHeight] = useState<number>();
   const [zoom, setZoom] = useState<number>();
+  const [fakeWidth, setFakeWidth] = useState<number>(750);
+  const [fakeHeight, setFakeHeight] = useState<number>(750);
 
   useEffect(() => {
     if (width === undefined || height === undefined) {
@@ -20,13 +31,67 @@ const CanvasSettings = ({ canvas }: Props) => {
       setZoom(canvas?.getZoom() * 100);
     }
   }, [canvas]);
+
+  useEffect(() => {
+    if (canvas && !fakeCanvasRect.current) {
+      console.log("fakeCanvas Made");
+      fakeCanvasRect.current = new Rect({
+        width: fakeWidth,
+        height: fakeHeight,
+        left: 0,
+        top: 0,
+        fill: "#FFFFFF",
+        selectable: false,
+        hoverCursor: "default",
+      });
+      fakeCanvasGroup.current = new Group([fakeCanvasRect.current], {
+        left: canvas.getCenterPoint().x,
+        top: canvas.getCenterPoint().y,
+      });
+      canvas.add(fakeCanvasRect.current);
+      canvas.requestRenderAll();
+    }
+  }, [canvas]);
+
   useEffect(() => {
     if (canvas) {
+      console.log("Canvas resize");
       canvas.setDimensions({ width: width, height: height });
+      if (fakeCanvasGroup.current) {
+        fakeCanvasGroup.current.set({
+          left: canvas.getCenterPoint().x,
+          top: canvas.getCenterPoint().y,
+        });
+        console.log("Reposition fakeCanvas: ", fakeCanvasGroup.current);
+      }
       canvas.renderAll();
     }
   }, [width, height, canvas]);
 
+  // Set fakeCanvas dimensions
+  useEffect(() => {
+    if (fakeCanvasRect.current && canvas) {
+      fakeCanvasRect.current.set({
+        width: fakeWidth,
+        height: fakeHeight,
+      });
+      fakeCanvasRect.current.setCoords();
+      console.log("Resizing fake canvas: ", fakeCanvasRect.current);
+      canvas.renderAll();
+    }
+  }, [fakeWidth, fakeHeight, canvas]);
+
+  useEffect(() => {
+    console.log("Adding resize event listener");
+    window.addEventListener("resize", resizeCanvas);
+    resizeCanvas();
+  }, []);
+
+  const resizeCanvas = () => {
+    console.log("windwos size changed");
+    setWidth(innerWidth - 15);
+    setHeight(innerHeight - 15);
+  };
   const parseToInt = (x: string) => {
     return x === "" ? 0 : parseInt(x.replace(/,/g, ""), 10);
   };
@@ -44,28 +109,50 @@ const CanvasSettings = ({ canvas }: Props) => {
     }
   };
 
+  const handleFakeWidthChange = (e: BaseSyntheticEvent) => {
+    const intValue = parseToInt(e.target?.value);
+    if (intValue > 0) {
+      setFakeWidth(intValue);
+    }
+  };
+
+  const handleFakeHeightChange = (e: BaseSyntheticEvent) => {
+    const intValue = parseToInt(e.target?.value);
+    if (intValue > 0) {
+      setFakeHeight(intValue);
+    }
+  };
+
   const handleZoom = (e: BaseSyntheticEvent) => {
     const intValue = parseToInt(e.target?.value);
-    if (intValue >= 0) {
+    if (intValue > 0 && fakeCanvasRect.current) {
       setZoom(intValue);
-      canvas?.setZoom(intValue / 100);
+      // canvas?.setZoom(intValue / 100);
+      canvas?.zoomToPoint(
+        fakeCanvasRect.current?.getCenterPoint(),
+        intValue / 100,
+      );
     }
   };
   return (
-    <div>
+    <Row className="flex-wrap ps-2 pe-1" style={{}}>
+      <Col xs={1}>W:</Col>
+      <Col>{width}</Col>
+      <Col xs={1}>H:</Col>
+      <Col>{height}</Col>
       <PTextField
         label="W:"
-        value={width}
+        value={fakeWidth}
         unit="px"
-        formId="canWidthForm"
-        onChange={handleWidthChange}
+        formId="fakeWidthForm"
+        onChange={handleFakeWidthChange}
       />
       <PTextField
         label="H:"
-        value={height}
+        value={fakeHeight}
         unit="px"
-        formId="canHeightForm"
-        onChange={handleHeightChange}
+        formId="fakeHeightForm"
+        onChange={handleFakeHeightChange}
       />
       <PTextField
         label="Z:"
@@ -74,7 +161,7 @@ const CanvasSettings = ({ canvas }: Props) => {
         formId="canZoomForm"
         onChange={handleZoom}
       />
-    </div>
+    </Row>
   );
 };
 

@@ -1,29 +1,43 @@
 import { useState, useEffect, useRef } from "react";
-import { Button, ButtonGroup, ButtonToolbar } from "react-bootstrap";
+import { Accordion, Button, ButtonGroup, ButtonToolbar } from "react-bootstrap";
 import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-icons/font/bootstrap-icons.css";
-import { Canvas, Circle, initFilterBackend, Rect } from "fabric";
-import Settings from "./components/Settings";
+import { Canvas, Circle, Group, initFilterBackend, Rect } from "fabric";
+import ObjSettings from "./components/ObjSettings";
+import CanvasSettings from "./components/CanvasSettings";
 const App = () => {
   const [canvas, setCanvas] = useState<Canvas>();
   const canvasRef = useRef(null);
+  const fakeCanvasRect = useRef<Rect>(null);
+  const fakeCanvasGroup = useRef<Group>(null);
+  const [windowWidth, setWindowWidth] = useState<number>(innerWidth);
+  const [windowHeight, setWindowHeight] = useState<number>(innerHeight);
+  useEffect(() => {
+    window.addEventListener("resize", handleResize);
+    handleResize();
+  }, []);
+  const handleResize = () => {
+    setWindowWidth(innerWidth);
+    setWindowHeight(innerHeight);
+  };
+  const isMobile = () => {
+    const treshold = 768;
+    return windowWidth < treshold;
+  };
+
   useEffect(() => {
     if (canvasRef.current) {
-      console.log("yes\n");
-      console.log(canvasRef.current);
       const innitCanvas = new Canvas(canvasRef.current, {
-        width: Math.min(innerWidth - 10, innerHeight - 10, 750),
-        height: Math.min(innerWidth - 10, innerHeight - 10, 750),
-        backgroundColor: "white",
+        width: innerWidth - 15,
+        height: innerHeight - 15,
+        backgroundColor: "#F0F8FF",
       });
+
       innitCanvas.renderAll();
       setCanvas(innitCanvas);
       return () => {
         innitCanvas.dispose();
       };
-    } else {
-      console.log("No\n");
-      console.log(canvasRef.current);
     }
   }, []);
   const buttonList = [
@@ -54,8 +68,7 @@ const App = () => {
           radius: 40,
           stroke: "#FFFFFF00",
         });
-        canvas?.add(circle);
-        console.log("circle clicked");
+        if (canvas) canvas.add(circle);
       },
     },
   ];
@@ -68,23 +81,44 @@ const App = () => {
           <canvas id="canvas1" ref={canvasRef}></canvas>
         </div>
       </div>
-      {/* Toolbar */}
-      <div className="position-absolute top-50 translate-middle-y ms-1">
-        <ButtonToolbar className=" ">
-          <ButtonGroup vertical>
-            {buttonList.map((el) => {
-              return (
-                <Button variant="secondary" onClick={el.onClick} key={el.id}>
-                  <i className={"bi bi-" + el.icon}></i>
-                </Button>
-              );
-            })}
-          </ButtonGroup>
-        </ButtonToolbar>
-      </div>
-      {/* Settings */}
-      <div className="position-absolute top-50 end-0 translate-middle-y me-3">
-        <Settings canvas={canvas}></Settings>
+      <div className="d-flex w-100 h-100 position-fixed top-0 start-0 justify-content-between flex-md-row flex-column align-items-center pe-none">
+        {/* Toolbar */}
+        <div className="ms-1 pe-auto">
+          <ButtonToolbar className="">
+            <ButtonGroup vertical={!isMobile()} className="">
+              {buttonList.map((el) => {
+                return (
+                  <Button variant="secondary" onClick={el.onClick} key={el.id}>
+                    <i className={"bi bi-" + el.icon}></i>
+                  </Button>
+                );
+              })}
+            </ButtonGroup>
+          </ButtonToolbar>
+        </div>
+        {/* Settings */}
+        <div className="me-3 pe-auto">
+          <div className="" style={{ width: "300px" }}>
+            <Accordion defaultActiveKey={["0", "1"]} alwaysOpen>
+              <Accordion.Item eventKey="0">
+                <Accordion.Header>Object Properties</Accordion.Header>
+                <Accordion.Body className="">
+                  <ObjSettings canvas={canvas}></ObjSettings>
+                </Accordion.Body>
+              </Accordion.Item>
+              <Accordion.Item eventKey="1">
+                <Accordion.Header>Canvas Properties</Accordion.Header>
+                <Accordion.Body>
+                  <CanvasSettings
+                    canvas={canvas}
+                    fakeCanvasRect={fakeCanvasRect}
+                    fakeCanvasGroup={fakeCanvasGroup}
+                  ></CanvasSettings>
+                </Accordion.Body>
+              </Accordion.Item>
+            </Accordion>
+          </div>
+        </div>
       </div>
     </div>
   );
