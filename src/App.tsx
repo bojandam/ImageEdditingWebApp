@@ -57,7 +57,7 @@ const App = () => {
         });
         fakeCanvasGroup.current?.add(square);
         canvas?.add(square);
-        square.clipPath = fake;
+        square.clipPath = fakeCanvasClip.current;
       },
     },
     {
