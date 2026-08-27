@@ -1,12 +1,11 @@
-import React, {
+import {
   useEffect,
-  useRef,
   useState,
   type BaseSyntheticEvent,
   type RefObject,
 } from "react";
 import PTextField from "./PTextField";
-import { Circle, Group, Rect, type Canvas } from "fabric";
+import { Group, Point, Rect, type Canvas } from "fabric";
 import { Col, Row } from "react-bootstrap";
 
 interface Props {
@@ -14,6 +13,7 @@ interface Props {
   fakeCanvasRect: RefObject<Rect>;
   fakeCanvasGroup: RefObject<Group>;
   fakeCanvasClip: RefObject<Rect>;
+  fakeCanvasCenter: RefObject<Point>;
 }
 
 const CanvasSettings = ({
@@ -21,6 +21,7 @@ const CanvasSettings = ({
   fakeCanvasRect,
   fakeCanvasGroup,
   fakeCanvasClip,
+  fakeCanvasCenter,
 }: Props) => {
   const [width, setWidth] = useState<number>();
   const [height, setHeight] = useState<number>();
@@ -64,6 +65,7 @@ const CanvasSettings = ({
         top: canvas.getCenterPoint().y,
         absolutePositioned: true,
       });
+      fakeCanvasCenter.current = new Point(canvas.getCenterPoint());
       fakeCanvasRect.current.clipPath = fakeCanvasClip.current;
       canvas.add(fakeCanvasRect.current);
       canvas.requestRenderAll();
@@ -75,12 +77,16 @@ const CanvasSettings = ({
       console.log("Canvas reposition");
       canvas.setDimensions({ width: width, height: height });
       if (fakeCanvasGroup.current) {
-        const pos = {
-          left: canvas.getCenterPoint().x,
-          top: canvas.getCenterPoint().y,
+        const newCenter = canvas.getCenterPoint();
+        const dX = newCenter.x - fakeCanvasCenter.current.x;
+        const dY = newCenter.y - fakeCanvasCenter.current.y;
+        const translate = (Obj, dx, dy) => {
+          Obj.set({ left: Obj.left + dx, top: Obj.top + dy });
         };
-        fakeCanvasClip.current.set(pos);
-        fakeCanvasGroup.current.set(pos);
+        translate(fakeCanvasClip.current, dX, dY);
+        translate(fakeCanvasGroup.current, dX, dY);
+        fakeCanvasCenter.current.setFromPoint(newCenter);
+        // fakeCanvasGroup.current.set(pos);
         // fakeCanvasRect.current.set({ left: 0, top: 0 });
         canvas.getActiveObject()?.setCoords();
         console.log("Reposition fakeCanvas: ", fakeCanvasGroup.current);
@@ -93,8 +99,8 @@ const CanvasSettings = ({
   useEffect(() => {
     if (fakeCanvasRect.current && canvas) {
       fakeCanvasRect.current.set({
-        width: canvas.width * 2, //to do: better solution
-        height: canvas.height * 2, // to do: better solution
+        width: canvas.width,
+        height: canvas.height,
       });
       fakeCanvasClip.current.set({
         width: fakeWidth,
@@ -118,22 +124,19 @@ const CanvasSettings = ({
     setWidth(innerWidth - 15);
     setHeight(innerHeight - 15);
   };
-  const parseToInt = (x: string) => {
-    return x === "" ? 0 : parseInt(x.replace(/,/g, ""), 10);
-  };
-  const handleWidthChange = (e: BaseSyntheticEvent) => {
-    const intValue = parseToInt(e.target?.value);
-    if (intValue >= 0) {
-      setWidth(intValue);
-    }
-  };
+  // const handleWidthChange = (e: BaseSyntheticEvent) => {
+  //   const intValue = parseToInt(e.target?.value);
+  //   if (intValue >= 0) {
+  //     setWidth(intValue);
+  //   }
+  // };
 
-  const handleHeightChange = (e: BaseSyntheticEvent) => {
-    const intValue = parseToInt(e.target?.value);
-    if (intValue >= 0) {
-      setHeight(intValue);
-    }
-  };
+  // const handleHeightChange = (e: BaseSyntheticEvent) => {
+  //   const intValue = parseToInt(e.target?.value);
+  //   if (intValue >= 0) {
+  //     setHeight(intValue);
+  //   }
+  // };
 
   const handleFakeWidthChange = (e: BaseSyntheticEvent) => {
     const intValue = parseToInt(e.target?.value);
@@ -190,5 +193,7 @@ const CanvasSettings = ({
     </Row>
   );
 };
-
+const parseToInt = (x: string) => {
+  return x === "" ? 0 : parseInt(x.replace(/,/g, ""), 10);
+};
 export default CanvasSettings;

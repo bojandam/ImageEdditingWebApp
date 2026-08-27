@@ -10,6 +10,7 @@ const App = () => {
   const canvasRef = useRef(null);
   const fakeCanvasRect = useRef<Rect>(null);
   const fakeCanvasGroup = useRef<Group>(null);
+  const fakeCanvasCenter = useRef<Group>(null);
   const fakeCanvasClip = useRef<Rect>(null);
   const [windowWidth, setWindowWidth] = useState<number>(innerWidth);
   const [windowHeight, setWindowHeight] = useState<number>(innerHeight);
@@ -70,6 +71,7 @@ const App = () => {
           stroke: "#FFFFFF00",
           top: canvas?.getCenterPoint().y,
           left: canvas?.getCenterPoint().x,
+          absolutePositioned: true,
         });
         fakeCanvasGroup.current?.add(circle);
         canvas?.add(circle);
@@ -120,6 +122,7 @@ const App = () => {
                     fakeCanvasRect={fakeCanvasRect}
                     fakeCanvasGroup={fakeCanvasGroup}
                     fakeCanvasClip={fakeCanvasClip}
+                    fakeCanvasCenter={fakeCanvasCenter}
                   ></CanvasSettings>
                 </Accordion.Body>
               </Accordion.Item>

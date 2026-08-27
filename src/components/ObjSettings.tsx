@@ -54,9 +54,10 @@ const ObjSettings = ({ canvas }: props) => {
     } else if (obj.type === "circle") {
       p.radius = Math.round(obj.radius * obj.scaleX);
     }
-
-    p.left = Math.round(obj.getRelativeX());
-    p.top = Math.round(obj.getRelativeY());
+    if (canvas) {
+      p.left = Math.round(obj.getX() - canvas.getCenterPoint().x);
+      p.top = Math.round(obj.getY() - canvas.getCenterPoint().y);
+    }
     p.fill = obj.fill;
     p.stroke = obj.stroke;
     p.strokeWidth = obj.strokeWidth;
@@ -99,7 +100,7 @@ const ObjSettings = ({ canvas }: props) => {
   const handleTopChange = (e: BaseSyntheticEvent) => {
     const intValue = parseToInt(e.target?.value);
 
-    if (selectedObject && (intValue >= 0 || intValue < 0)) {
+    if (selectedObject && canvas && (intValue >= 0 || intValue < 0)) {
       setObjProperties({ ...objProperties, top: intValue });
       selectedObject.set({ top: intValue });
       selectedObject.setCoords();
@@ -109,7 +110,7 @@ const ObjSettings = ({ canvas }: props) => {
   const handleLeftChange = (e: BaseSyntheticEvent) => {
     const intValue = parseToInt(e.target?.value);
 
-    if (selectedObject && (intValue >= 0 || intValue < 0)) {
+    if (selectedObject && canvas && (intValue >= 0 || intValue < 0)) {
       setObjProperties({ ...objProperties, left: intValue });
       selectedObject.set({ left: intValue });
       selectedObject.setCoords();
