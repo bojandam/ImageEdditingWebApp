@@ -9,7 +9,7 @@ const App = () => {
   const [canvas, setCanvas] = useState<Canvas>();
   const canvasRef = useRef(null);
   const fakeCanvasRect = useRef<Rect>(null);
-  const fakeCanvasGroup = useRef<Group>(null);
+  // const fakeCanvasGroup = useRef<Group>(null);
   const fakeCanvasCenter = useRef<Group>(null);
   const fakeCanvasClip = useRef<Rect>(null);
   const [windowWidth, setWindowWidth] = useState<number>(innerWidth);
@@ -56,7 +56,7 @@ const App = () => {
           fill: "#FFAAAA",
           stroke: "#FFFFFF00",
         });
-        fakeCanvasGroup.current?.add(square);
+        // fakeCanvasGroup.current?.add(square);
         canvas?.add(square);
         square.clipPath = fakeCanvasClip.current;
       },
@@ -73,7 +73,7 @@ const App = () => {
           left: canvas?.getCenterPoint().x,
           absolutePositioned: true,
         });
-        fakeCanvasGroup.current?.add(circle);
+        // fakeCanvasGroup.current?.add(circle);
         canvas?.add(circle);
         console.log(fakeCanvasClip.current);
         circle.clipPath = fakeCanvasClip.current;
@@ -120,7 +120,7 @@ const App = () => {
                   <CanvasSettings
                     canvas={canvas}
                     fakeCanvasRect={fakeCanvasRect}
-                    fakeCanvasGroup={fakeCanvasGroup}
+                    // fakeCanvasGroup={fakeCanvasGroup}
                     fakeCanvasClip={fakeCanvasClip}
                     fakeCanvasCenter={fakeCanvasCenter}
                   ></CanvasSettings>

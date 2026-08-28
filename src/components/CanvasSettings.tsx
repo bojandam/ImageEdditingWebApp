@@ -19,7 +19,7 @@ interface Props {
 const CanvasSettings = ({
   canvas,
   fakeCanvasRect,
-  fakeCanvasGroup,
+  // fakeCanvasGroup,
   fakeCanvasClip,
   fakeCanvasCenter,
 }: Props) => {
@@ -46,18 +46,18 @@ const CanvasSettings = ({
       fakeCanvasRect.current = new Rect({
         width: canvas.width * 2,
         height: canvas.height * 2,
-        left: 0,
-        top: 0,
+        left: canvas.getCenterPoint().x,
+        top: canvas.getCenterPoint().y,
         fill: "#FFFFFF",
         selectable: false,
         hoverCursor: "default",
         stroke: "#FFFFFF",
         strokeWidth: 1,
       });
-      fakeCanvasGroup.current = new Group([fakeCanvasRect.current], {
-        left: canvas.getCenterPoint().x,
-        top: canvas.getCenterPoint().y,
-      });
+      // fakeCanvasGroup.current = new Group([fakeCanvasRect.current], {
+      //   left: canvas.getCenterPoint().x,
+      //   top: canvas.getCenterPoint().y,
+      // });
       fakeCanvasClip.current = new Rect({
         width: fakeWidth,
         height: fakeHeight,
@@ -76,21 +76,27 @@ const CanvasSettings = ({
     if (canvas) {
       console.log("Canvas reposition");
       canvas.setDimensions({ width: width, height: height });
-      if (fakeCanvasGroup.current) {
-        const newCenter = canvas.getCenterPoint();
-        const dX = newCenter.x - fakeCanvasCenter.current.x;
-        const dY = newCenter.y - fakeCanvasCenter.current.y;
-        const translate = (Obj, dx, dy) => {
-          Obj.set({ left: Obj.left + dx, top: Obj.top + dy });
-        };
-        translate(fakeCanvasClip.current, dX, dY);
-        translate(fakeCanvasGroup.current, dX, dY);
-        fakeCanvasCenter.current.setFromPoint(newCenter);
-        // fakeCanvasGroup.current.set(pos);
-        // fakeCanvasRect.current.set({ left: 0, top: 0 });
-        canvas.getActiveObject()?.setCoords();
-        console.log("Reposition fakeCanvas: ", fakeCanvasGroup.current);
-      }
+
+      const newCenter = canvas.getCenterPoint();
+      const dX = newCenter.x - fakeCanvasCenter.current.x;
+      const dY = newCenter.y - fakeCanvasCenter.current.y;
+      const translate = (Obj, dx, dy) => {
+        Obj.set({ left: Obj.left + dx, top: Obj.top + dy });
+      };
+      translate(fakeCanvasClip.current, dX, dY);
+      // translate(fakeCanvasGroup.current, dX, dY);
+      fakeCanvasCenter.current.setFromPoint(newCenter);
+      canvas.getObjects().forEach((el) => {
+        console.log("Before: ", el.left);
+        translate(el, dX, dY);
+        console.log("After: ", el.left);
+        console.log(el);
+        el.setCoords();
+      });
+      fakeCanvasRect.current.set({ left: newCenter.x, top: newCenter.y });
+      canvas.getActiveObject()?.setCoords();
+      // console.log("Reposition fakeCanvas: ", fakeCanvasGroup.current);
+
       canvas.renderAll();
     }
   }, [width, height, canvas]);

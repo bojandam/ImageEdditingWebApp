@@ -102,7 +102,7 @@ const ObjSettings = ({ canvas }: props) => {
 
     if (selectedObject && canvas && (intValue >= 0 || intValue < 0)) {
       setObjProperties({ ...objProperties, top: intValue });
-      selectedObject.set({ top: intValue });
+      selectedObject.set({ top: intValue + canvas.getCenterPoint().y });
       selectedObject.setCoords();
       canvas?.renderAll();
     }
@@ -112,7 +112,7 @@ const ObjSettings = ({ canvas }: props) => {
 
     if (selectedObject && canvas && (intValue >= 0 || intValue < 0)) {
       setObjProperties({ ...objProperties, left: intValue });
-      selectedObject.set({ left: intValue });
+      selectedObject.set({ left: intValue + canvas.getCenterPoint().x });
       selectedObject.setCoords();
       canvas?.renderAll();
     }
