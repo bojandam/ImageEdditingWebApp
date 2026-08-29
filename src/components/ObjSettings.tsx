@@ -1,4 +1,4 @@
-import { useEffect, useState, type BaseSyntheticEvent } from "react";
+import { useEffect, useRef, useState, type BaseSyntheticEvent } from "react";
 import { Canvas, FabricObject, Rect, type TFiller } from "fabric";
 import { Accordion, Row } from "react-bootstrap";
 import PTextField from "./PTextField";
@@ -15,19 +15,15 @@ interface objProps {
   fill?: string | TFiller | null;
   strokeWidth?: number;
   stroke?: string | TFiller | null;
+  angle?: number;
 }
 
 const ObjSettings = ({ canvas }: props) => {
   const [selectedObject, setSelectedObject] = useState<any>(null);
   const [objProperties, setObjProperties] = useState<objProps>({});
   const [isEmpty, setIsEmpty] = useState<boolean>(true);
-  //   const [width, setWidth] = useState<number | null>();
-  //   const [height, setHeight] = useState<number | null>();
-  //   const [top, setTop] = useState<number | null>();
-  //   const [left, setLeft] = useState<number | null>();
-  //   const [radius, setRadius] = useState<number | null>();
-  //   const [fill, setFill] = useState<string | TFiller | null>();
-
+  // const [isMouseOver, setIsMouseOver] = useState<boolean>(false);
+  // const isMouseOverRef = useRef<boolean>(false);
   useEffect(() => {
     if (canvas) {
       canvas.on("selection:created", (e) => {
@@ -43,6 +39,18 @@ const ObjSettings = ({ canvas }: props) => {
       canvas.on("object:modified", (e) => handleObjectSelection(e.target));
       canvas.on("object:scaling", (e) => handleObjectSelection(e.target));
       canvas.on("object:moving", (e) => handleObjectSelection(e.target));
+
+      // canvas.upperCanvasEl.addEventListener("mouseenter", () => {
+      //   setIsMouseOver(true);
+      //   isMouseOverRef.current = true;
+      // });
+
+      // canvas.upperCanvasEl.addEventListener("mouseleave", () => {
+      //   setIsMouseOver(false);
+      //   isMouseOverRef.current = false;
+      // });
+
+      // document.addEventListener("keydown", handleKeydown);
     }
   }, [canvas]);
 
@@ -61,6 +69,7 @@ const ObjSettings = ({ canvas }: props) => {
     p.fill = obj.fill;
     p.stroke = obj.stroke;
     p.strokeWidth = obj.strokeWidth;
+    p.angle = obj.angle;
     console.log(p.stroke?.toString);
 
     setObjProperties(p);
@@ -73,9 +82,32 @@ const ObjSettings = ({ canvas }: props) => {
     setIsEmpty(true);
     setSelectedObject(null);
   };
-
+  // const handleKeydown = (e) => {
+  //   if ((e.which === 8 || e.which == 46) && isMouseOverRef.current) {
+  //     console.log("Delete");
+  //     deleteElemetnt();
+  //   }
+  // };
+  // const deleteElemetnt = () => {
+  //   if (canvas) {
+  //     const obj = canvas.getActiveObject();
+  //     if (obj) {
+  //       if (obj.type === "activeselection") {
+  //         obj.getObjects().forEach((el) => {
+  //           canvas.remove(el);
+  //         });
+  //       } else {
+  //         canvas.remove(obj);
+  //       }
+  //       canvas.discardActiveObject();
+  //     }
+  //   }
+  // };
   const parseToInt = (x: string) => {
     return x === "" ? 0 : parseInt(x.replace(/,/g, ""), 10);
+  };
+  const parseToFloat = (x: string) => {
+    return x === "" ? 0 : parseFloat(x);
   };
   const handleWidthChange = (e: BaseSyntheticEvent) => {
     const intValue = parseToInt(e.target?.value);
@@ -124,6 +156,16 @@ const ObjSettings = ({ canvas }: props) => {
     if (selectedObject && intValue >= 0) {
       setObjProperties({ ...objProperties, radius: intValue });
       selectedObject.set({ radius: intValue / selectedObject.scaleX });
+      selectedObject.setCoords();
+      canvas?.renderAll();
+    }
+  };
+  const handleAngleChange = (e: BaseSyntheticEvent) => {
+    const intValue = parseToFloat(e.target?.value);
+
+    if (selectedObject && intValue >= 0) {
+      setObjProperties({ ...objProperties, angle: intValue });
+      selectedObject.set({ angle: intValue });
       selectedObject.setCoords();
       canvas?.renderAll();
     }
@@ -200,6 +242,14 @@ const ObjSettings = ({ canvas }: props) => {
         />
         {/* </Row>
               <Row> */}
+
+        <PTextField
+          label={<i className="bi bi-arrow-clockwise"></i>}
+          value={objProperties.angle}
+          formId="angleForm"
+          unit="°"
+          onChange={handleAngleChange}
+        />
         <PTextField
           label="C:"
           value={objProperties.fill?.toString()}
@@ -223,6 +273,7 @@ const ObjSettings = ({ canvas }: props) => {
           unit="px"
           onChange={handleStrokeWidthChange}
         />
+        {/* <p>{isMouseOver ? "True" : "False"}</p> */}
         {/* {</Row>
               <Row>} */}
         {isEmpty && (

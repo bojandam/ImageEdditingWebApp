@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, type BaseSyntheticEvent } from "react";
 import { Accordion, Button, ButtonGroup, ButtonToolbar } from "react-bootstrap";
 import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-icons/font/bootstrap-icons.css";
@@ -14,6 +14,7 @@ const App = () => {
   const fakeCanvasClip = useRef<Rect>(null);
   const [windowWidth, setWindowWidth] = useState<number>(innerWidth);
   const [windowHeight, setWindowHeight] = useState<number>(innerHeight);
+  const [zoom, setZoom] = useState<number>(100);
   useEffect(() => {
     window.addEventListener("resize", handleResize);
     handleResize();
@@ -51,14 +52,14 @@ const App = () => {
         const square = new Rect({
           width: 150,
           height: 150,
-          top: 200,
-          left: 200,
+          top: canvas?.getCenterPoint().y,
+          left: canvas?.getCenterPoint().x,
           fill: "#FFAAAA",
           stroke: "#FFFFFF00",
         });
         // fakeCanvasGroup.current?.add(square);
         canvas?.add(square);
-        square.clipPath = fakeCanvasClip.current;
+        if (fakeCanvasClip.current) square.clipPath = fakeCanvasClip.current;
       },
     },
     {
@@ -71,7 +72,6 @@ const App = () => {
           stroke: "#FFFFFF00",
           top: canvas?.getCenterPoint().y,
           left: canvas?.getCenterPoint().x,
-          absolutePositioned: true,
         });
         // fakeCanvasGroup.current?.add(circle);
         canvas?.add(circle);
@@ -79,13 +79,66 @@ const App = () => {
         circle.clipPath = fakeCanvasClip.current;
       },
     },
+    {
+      id: 2,
+      icon: "circle",
+      onClick: () => {
+        const circle = new Circle({
+          fill: "#AAFFFF",
+          radius: 40,
+          stroke: "#FFFFFF00",
+          top: canvas?.getCenterPoint().y,
+          left: canvas?.getCenterPoint().x,
+        });
+        // fakeCanvasGroup.current?.add(circle);
+        canvas?.add(circle);
+        console.log(fakeCanvasClip.current);
+        // circle.clipPath = fakeCanvasClip.current;
+      },
+    },
+    {
+      id: 3,
+      icon: "house-gear",
+      onClick: () => {
+        if (canvas) {
+          canvas.setViewportTransform([1, 0, 0, 1, 0, 0]);
+          setZoom(100);
+        }
+      },
+    },
   ];
+  const handleCanvasKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    console.log("Keydown: ", e);
+    if (["Backspace", "Delete"].includes(e.key)) {
+      console.log("Delete");
+      deleteElemetnt();
+    }
+  };
+  const deleteElemetnt = () => {
+    if (canvas) {
+      const obj = canvas.getActiveObject();
+      if (obj) {
+        if (obj.type === "activeselection") {
+          obj.getObjects().forEach((el) => {
+            canvas.remove(el);
+          });
+        } else {
+          canvas.remove(obj);
+        }
+        canvas.discardActiveObject();
+      }
+    }
+  };
 
   return (
     <div className="w-100 h-100">
       {/* Canvas */}
       <div className="bg-light d-flex flex-row justify-content-evenly min-vh-100 ">
-        <div className="my-auto">
+        <div
+          className="my-auto focus-ring shadow-none"
+          onKeyDown={handleCanvasKeyDown}
+          tabIndex={0}
+        >
           <canvas id="canvas1" ref={canvasRef}></canvas>
         </div>
       </div>
@@ -107,7 +160,7 @@ const App = () => {
         {/* Settings */}
         <div className="me-3 pe-auto">
           <div className="" style={{ width: "300px" }}>
-            <Accordion defaultActiveKey={["0", "1"]} alwaysOpen>
+            <Accordion defaultActiveKey={["0", "1"]} alwaysOpen tabIndex={0}>
               <Accordion.Item eventKey="0">
                 <Accordion.Header>Object Properties</Accordion.Header>
                 <Accordion.Body className="">
@@ -120,9 +173,12 @@ const App = () => {
                   <CanvasSettings
                     canvas={canvas}
                     fakeCanvasRect={fakeCanvasRect}
-                    // fakeCanvasGroup={fakeCanvasGroup}
                     fakeCanvasClip={fakeCanvasClip}
                     fakeCanvasCenter={fakeCanvasCenter}
+                    zoom={zoom}
+                    setZoom={(zoom) => {
+                      setZoom(zoom);
+                    }}
                   ></CanvasSettings>
                 </Accordion.Body>
               </Accordion.Item>

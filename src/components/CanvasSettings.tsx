@@ -14,18 +14,20 @@ interface Props {
   fakeCanvasGroup: RefObject<Group>;
   fakeCanvasClip: RefObject<Rect>;
   fakeCanvasCenter: RefObject<Point>;
+  zoom: number | undefined;
+  setZoom: (zoom: number) => {};
 }
 
 const CanvasSettings = ({
   canvas,
   fakeCanvasRect,
-  // fakeCanvasGroup,
   fakeCanvasClip,
   fakeCanvasCenter,
+  zoom,
+  setZoom,
 }: Props) => {
   const [width, setWidth] = useState<number>();
   const [height, setHeight] = useState<number>();
-  const [zoom, setZoom] = useState<number>();
   const [fakeWidth, setFakeWidth] = useState<number>(750);
   const [fakeHeight, setFakeHeight] = useState<number>(750);
 
@@ -36,7 +38,7 @@ const CanvasSettings = ({
       setHeight(canvas?.height);
     }
     if (canvas && zoom === undefined) {
-      setZoom(canvas?.getZoom() * 100);
+      setZoom(canvas.getZoom() * 100);
     }
   }, [canvas]);
   //Creating Rect, Group, Clip
@@ -81,11 +83,12 @@ const CanvasSettings = ({
       const dX = newCenter.x - fakeCanvasCenter.current.x;
       const dY = newCenter.y - fakeCanvasCenter.current.y;
       const translate = (Obj, dx, dy) => {
-        Obj.set({ left: Obj.left + dx, top: Obj.top + dy });
+        Obj.set({
+          left: Obj.left + dx,
+          top: Obj.top + dy,
+        });
       };
       translate(fakeCanvasClip.current, dX, dY);
-      // translate(fakeCanvasGroup.current, dX, dY);
-      fakeCanvasCenter.current.setFromPoint(newCenter);
       canvas.getObjects().forEach((el) => {
         console.log("Before: ", el.left);
         translate(el, dX, dY);
@@ -93,7 +96,8 @@ const CanvasSettings = ({
         console.log(el);
         el.setCoords();
       });
-      fakeCanvasRect.current.set({ left: newCenter.x, top: newCenter.y });
+      fakeCanvasCenter.current.setFromPoint(newCenter);
+      // fakeCanvasRect.current.set({ left: newCenter.x, top: newCenter.y });
       canvas.getActiveObject()?.setCoords();
       // console.log("Reposition fakeCanvas: ", fakeCanvasGroup.current);
 
@@ -105,8 +109,8 @@ const CanvasSettings = ({
   useEffect(() => {
     if (fakeCanvasRect.current && canvas) {
       fakeCanvasRect.current.set({
-        width: canvas.width,
-        height: canvas.height,
+        width: fakeWidth,
+        height: fakeHeight,
       });
       fakeCanvasClip.current.set({
         width: fakeWidth,
@@ -125,24 +129,55 @@ const CanvasSettings = ({
     resizeCanvas();
   }, []);
 
+  useEffect(() => {
+    if (canvas) {
+      canvas.on("mouse:down", function (opt) {
+        var evt = opt.e;
+        if (evt.altKey === true) {
+          this.isDragging = true;
+          this.selection = false;
+          this.lastPosX = evt.clientX;
+          this.lastPosY = evt.clientY;
+        }
+      });
+      canvas.on("mouse:move", function (opt) {
+        if (this.isDragging) {
+          var e = opt.e;
+          var vpt = this.viewportTransform;
+          vpt[4] += e.clientX - this.lastPosX;
+          vpt[5] += e.clientY - this.lastPosY;
+          this.requestRenderAll();
+          this.lastPosX = e.clientX;
+          this.lastPosY = e.clientY;
+        }
+      });
+      canvas.on("mouse:up", function (opt) {
+        // on mouse up we want to recalculate new interaction
+        // for all objects, so we call setViewportTransform
+        this.setViewportTransform(this.viewportTransform);
+        this.isDragging = false;
+        this.selection = true;
+      });
+      canvas.on("mouse:wheel", function (opt) {
+        var delta = opt.e.deltaY;
+        var zoom = canvas.getZoom();
+        zoom *= 0.999 ** delta;
+        if (zoom > 20) zoom = 20;
+        if (zoom < 0.01) zoom = 0.01;
+        canvas.zoomToPoint(canvas.getCenterPoint(), zoom);
+        setZoom(zoom * 100);
+        opt.e.preventDefault();
+        opt.e.stopPropagation();
+        canvas.setViewportTransform(canvas.viewportTransform);
+      });
+    }
+  });
+
   const resizeCanvas = () => {
     console.log("windwos size changed");
     setWidth(innerWidth - 15);
     setHeight(innerHeight - 15);
   };
-  // const handleWidthChange = (e: BaseSyntheticEvent) => {
-  //   const intValue = parseToInt(e.target?.value);
-  //   if (intValue >= 0) {
-  //     setWidth(intValue);
-  //   }
-  // };
-
-  // const handleHeightChange = (e: BaseSyntheticEvent) => {
-  //   const intValue = parseToInt(e.target?.value);
-  //   if (intValue >= 0) {
-  //     setHeight(intValue);
-  //   }
-  // };
 
   const handleFakeWidthChange = (e: BaseSyntheticEvent) => {
     const intValue = parseToInt(e.target?.value);
@@ -162,11 +197,7 @@ const CanvasSettings = ({
     const intValue = parseToInt(e.target?.value);
     if (intValue > 0 && fakeCanvasRect.current) {
       setZoom(intValue);
-      // canvas?.setZoom(intValue / 100);
-      canvas?.zoomToPoint(
-        fakeCanvasRect.current?.getCenterPoint(),
-        intValue / 100,
-      );
+      canvas?.zoomToPoint(canvas.getCenterPoint(), intValue / 100);
     }
   };
   return (
