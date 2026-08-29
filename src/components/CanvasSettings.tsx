@@ -5,17 +5,16 @@ import {
   type RefObject,
 } from "react";
 import PTextField from "./PTextField";
-import { Group, Point, Rect, type Canvas } from "fabric";
+import { FabricObject, Point, Rect, type Canvas } from "fabric";
 import { Col, Row } from "react-bootstrap";
 
 interface Props {
   canvas: Canvas | undefined;
-  fakeCanvasRect: RefObject<Rect>;
-  fakeCanvasGroup: RefObject<Group>;
-  fakeCanvasClip: RefObject<Rect>;
-  fakeCanvasCenter: RefObject<Point>;
+  fakeCanvasRect: RefObject<Rect | null>;
+  fakeCanvasClip: RefObject<Rect | null>;
+  fakeCanvasCenter: RefObject<Point | null>;
   zoom: number | undefined;
-  setZoom: (zoom: number) => {};
+  setZoom: (value: React.SetStateAction<number>) => void;
 }
 
 const CanvasSettings = ({
@@ -43,8 +42,20 @@ const CanvasSettings = ({
   }, [canvas]);
   //Creating Rect, Group, Clip
   useEffect(() => {
-    if (canvas && !fakeCanvasRect.current) {
+    if (canvas && fakeCanvasRect && !fakeCanvasRect.current) {
       console.log("fakeCanvas Made");
+      if (fakeCanvasCenter)
+        fakeCanvasCenter.current = new Point(canvas.getCenterPoint());
+
+      if (fakeCanvasClip)
+        fakeCanvasClip.current = new Rect({
+          width: fakeWidth,
+          height: fakeHeight,
+          left: canvas.getCenterPoint().x,
+          top: canvas.getCenterPoint().y,
+          absolutePositioned: true,
+        });
+
       fakeCanvasRect.current = new Rect({
         width: canvas.width * 2,
         height: canvas.height * 2,
@@ -56,58 +67,48 @@ const CanvasSettings = ({
         stroke: "#FFFFFF",
         strokeWidth: 1,
       });
-      // fakeCanvasGroup.current = new Group([fakeCanvasRect.current], {
-      //   left: canvas.getCenterPoint().x,
-      //   top: canvas.getCenterPoint().y,
-      // });
-      fakeCanvasClip.current = new Rect({
-        width: fakeWidth,
-        height: fakeHeight,
-        left: canvas.getCenterPoint().x,
-        top: canvas.getCenterPoint().y,
-        absolutePositioned: true,
-      });
-      fakeCanvasCenter.current = new Point(canvas.getCenterPoint());
-      fakeCanvasRect.current.clipPath = fakeCanvasClip.current;
+      if (fakeCanvasClip && fakeCanvasClip.current)
+        fakeCanvasRect.current.clipPath = fakeCanvasClip.current;
       canvas.add(fakeCanvasRect.current);
       canvas.requestRenderAll();
     }
   }, [canvas]);
 
   useEffect(() => {
-    if (canvas) {
+    if (canvas && fakeCanvasCenter && fakeCanvasClip) {
       console.log("Canvas reposition");
       canvas.setDimensions({ width: width, height: height });
-
-      const newCenter = canvas.getCenterPoint();
-      const dX = newCenter.x - fakeCanvasCenter.current.x;
-      const dY = newCenter.y - fakeCanvasCenter.current.y;
-      const translate = (Obj, dx, dy) => {
-        Obj.set({
-          left: Obj.left + dx,
-          top: Obj.top + dy,
+      if (fakeCanvasCenter.current && fakeCanvasClip.current) {
+        const newCenter = canvas.getCenterPoint();
+        const dX = newCenter.x - fakeCanvasCenter.current.x;
+        const dY = newCenter.y - fakeCanvasCenter.current.y;
+        const translate = (Obj: FabricObject, dx: number, dy: number) => {
+          Obj.set({
+            left: Obj.left + dx,
+            top: Obj.top + dy,
+          });
+        };
+        translate(fakeCanvasClip.current, dX, dY);
+        canvas.getObjects().forEach((el) => {
+          console.log("Before: ", el.left);
+          translate(el, dX, dY);
+          console.log("After: ", el.left);
+          console.log(el);
+          el.setCoords();
         });
-      };
-      translate(fakeCanvasClip.current, dX, dY);
-      canvas.getObjects().forEach((el) => {
-        console.log("Before: ", el.left);
-        translate(el, dX, dY);
-        console.log("After: ", el.left);
-        console.log(el);
-        el.setCoords();
-      });
-      fakeCanvasCenter.current.setFromPoint(newCenter);
-      // fakeCanvasRect.current.set({ left: newCenter.x, top: newCenter.y });
-      canvas.getActiveObject()?.setCoords();
-      // console.log("Reposition fakeCanvas: ", fakeCanvasGroup.current);
+        fakeCanvasCenter.current.setFromPoint(newCenter);
+        // fakeCanvasRect.current.set({ left: newCenter.x, top: newCenter.y });
+        canvas.getActiveObject()?.setCoords();
+        // console.log("Reposition fakeCanvas: ", fakeCanvasGroup.current);
 
-      canvas.renderAll();
+        canvas.renderAll();
+      }
     }
   }, [width, height, canvas]);
 
   // Set fakeCanvas dimensions
   useEffect(() => {
-    if (fakeCanvasRect.current && canvas) {
+    if (fakeCanvasClip.current && fakeCanvasRect.current && canvas) {
       fakeCanvasRect.current.set({
         width: fakeWidth,
         height: fakeHeight,
@@ -131,18 +132,18 @@ const CanvasSettings = ({
 
   useEffect(() => {
     if (canvas) {
-      canvas.on("mouse:down", function (opt) {
-        var evt = opt.e;
+      canvas.on("mouse:down", function (this: any, opt) {
+        var evt: any = opt.e;
         if (evt.altKey === true) {
-          this.isDragging = true;
+          (this as any).isDragging = true;
           this.selection = false;
           this.lastPosX = evt.clientX;
           this.lastPosY = evt.clientY;
         }
       });
-      canvas.on("mouse:move", function (opt) {
+      canvas.on("mouse:move", function (this: any, opt) {
         if (this.isDragging) {
-          var e = opt.e;
+          var e: any = opt.e;
           var vpt = this.viewportTransform;
           vpt[4] += e.clientX - this.lastPosX;
           vpt[5] += e.clientY - this.lastPosY;
@@ -151,9 +152,7 @@ const CanvasSettings = ({
           this.lastPosY = e.clientY;
         }
       });
-      canvas.on("mouse:up", function (opt) {
-        // on mouse up we want to recalculate new interaction
-        // for all objects, so we call setViewportTransform
+      canvas.on("mouse:up", function (this: any) {
         this.setViewportTransform(this.viewportTransform);
         this.isDragging = false;
         this.selection = true;
@@ -195,7 +194,7 @@ const CanvasSettings = ({
 
   const handleZoom = (e: BaseSyntheticEvent) => {
     const intValue = parseToInt(e.target?.value);
-    if (intValue > 0 && fakeCanvasRect.current) {
+    if (intValue > 0 && fakeCanvasRect && fakeCanvasRect.current) {
       setZoom(intValue);
       canvas?.zoomToPoint(canvas.getCenterPoint(), intValue / 100);
     }

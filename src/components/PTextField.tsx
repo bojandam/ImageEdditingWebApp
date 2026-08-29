@@ -6,7 +6,7 @@ interface Props {
   label: string | ReactNode;
   value: number | string | undefined;
   formId: string;
-  onChange: SyntheticEvent;
+  onChange: any;
   type?: string;
   unit?: string;
 }

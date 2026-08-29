@@ -2,15 +2,23 @@ import { useState, useEffect, useRef, type BaseSyntheticEvent } from "react";
 import { Accordion, Button, ButtonGroup, ButtonToolbar } from "react-bootstrap";
 import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-icons/font/bootstrap-icons.css";
-import { Canvas, Circle, Group, initFilterBackend, Rect } from "fabric";
+import {
+  ActiveSelection,
+  Canvas,
+  Circle,
+  FabricObject,
+  Group,
+  initFilterBackend,
+  Point,
+  Rect,
+} from "fabric";
 import ObjSettings from "./components/ObjSettings";
 import CanvasSettings from "./components/CanvasSettings";
 const App = () => {
   const [canvas, setCanvas] = useState<Canvas>();
   const canvasRef = useRef(null);
   const fakeCanvasRect = useRef<Rect>(null);
-  // const fakeCanvasGroup = useRef<Group>(null);
-  const fakeCanvasCenter = useRef<Group>(null);
+  const fakeCanvasCenter = useRef<Point>(null);
   const fakeCanvasClip = useRef<Rect>(null);
   const [windowWidth, setWindowWidth] = useState<number>(innerWidth);
   const [windowHeight, setWindowHeight] = useState<number>(innerHeight);
@@ -76,7 +84,7 @@ const App = () => {
         // fakeCanvasGroup.current?.add(circle);
         canvas?.add(circle);
         console.log(fakeCanvasClip.current);
-        circle.clipPath = fakeCanvasClip.current;
+        if (fakeCanvasClip.current) circle.clipPath = fakeCanvasClip.current;
       },
     },
     {
@@ -119,7 +127,7 @@ const App = () => {
       const obj = canvas.getActiveObject();
       if (obj) {
         if (obj.type === "activeselection") {
-          obj.getObjects().forEach((el) => {
+          (obj as ActiveSelection).getObjects().forEach((el) => {
             canvas.remove(el);
           });
         } else {
