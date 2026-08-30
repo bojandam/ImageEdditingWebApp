@@ -74,9 +74,9 @@ const CanvasSettings = ({
     }
   }, [canvas]);
 
+  // Reposition on window size change
   useEffect(() => {
-    if (canvas && fakeCanvasCenter && fakeCanvasClip) {
-      console.log("Canvas reposition");
+    if (canvas) {
       canvas.setDimensions({ width: width, height: height });
       if (fakeCanvasCenter.current && fakeCanvasClip.current) {
         const newCenter = canvas.getCenterPoint();
@@ -97,10 +97,7 @@ const CanvasSettings = ({
           el.setCoords();
         });
         fakeCanvasCenter.current.setFromPoint(newCenter);
-        // fakeCanvasRect.current.set({ left: newCenter.x, top: newCenter.y });
         canvas.getActiveObject()?.setCoords();
-        // console.log("Reposition fakeCanvas: ", fakeCanvasGroup.current);
-
         canvas.renderAll();
       }
     }
@@ -125,11 +122,10 @@ const CanvasSettings = ({
   }, [fakeWidth, fakeHeight, canvas]);
 
   useEffect(() => {
-    console.log("Adding resize event listener");
     window.addEventListener("resize", resizeCanvas);
     resizeCanvas();
   }, []);
-
+  //Zoom & Pan, (kopirano od fabric.js docs p5)
   useEffect(() => {
     if (canvas) {
       canvas.on("mouse:down", function (this: any, opt) {
@@ -170,7 +166,7 @@ const CanvasSettings = ({
         canvas.setViewportTransform(canvas.viewportTransform);
       });
     }
-  });
+  }, [canvas]);
 
   const resizeCanvas = () => {
     console.log("windwos size changed");
