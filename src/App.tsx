@@ -25,7 +25,6 @@ const App = () => {
   const [windowWidth, setWindowWidth] = useState<number>(innerWidth);
   const [windowHeight, setWindowHeight] = useState<number>(innerHeight);
   const [zoom, setZoom] = useState<number>(100);
-  const guidelinesRef = useRef<Polyline[]>([]);
 
   useEffect(() => {
     window.addEventListener("resize", handleResize);
@@ -55,63 +54,7 @@ const App = () => {
       };
     }
   }, []);
-  useEffect(() => {
-    if (canvas) {
-      canvas.on("object:moving", (e) => {
-        handleMovingSnap(
-          canvas,
-          fakeCanvasRect,
-          e.target,
-          [
-            {
-              point: fakeCanvasRect.current
-                ? ((a) => {
-                    return (-a.width * a.scaleX) / 2;
-                  })(fakeCanvasRect.current)
-                : 0,
-              vertical: true,
-            },
-            {
-              point: 0,
-              vertical: true,
-            },
-            {
-              point: fakeCanvasRect.current
-                ? ((a) => {
-                    return (a.width * a.scaleX) / 2;
-                  })(fakeCanvasRect.current)
-                : 0,
-              vertical: true,
-            },
-            {
-              point: fakeCanvasRect.current
-                ? ((a) => {
-                    return (-a.height * a.scaleY) / 2;
-                  })(fakeCanvasRect.current)
-                : 0,
-              vertical: false,
-            },
-            {
-              point: 0,
-              vertical: false,
-            },
-            {
-              point: fakeCanvasRect.current
-                ? ((a) => {
-                    return (a.height * a.scaleY) / 2;
-                  })(fakeCanvasRect.current)
-                : 0,
-              vertical: false,
-            },
-          ],
-          guidelinesRef,
-        );
-      });
-      canvas.on("object:modified", (e) => {
-        canvas.remove(...guidelinesRef.current);
-      });
-    }
-  }, [canvas]);
+
   const buttonList = [
     {
       id: 0,
@@ -241,7 +184,10 @@ const App = () => {
                   Object Properties
                 </Accordion.Header>
                 <Accordion.Body className="">
-                  <ObjSettings canvas={canvas}></ObjSettings>
+                  <ObjSettings
+                    canvas={canvas}
+                    fakeCanvasRect={fakeCanvasRect}
+                  ></ObjSettings>
                 </Accordion.Body>
               </Accordion.Item>
               <Accordion.Item eventKey="1">

@@ -18,6 +18,50 @@ export function handleMovingSnap(
   guidelinesRef: RefObject<Polyline[] | null>,
 ) {
   if (canvas && fakeCanvasRect.current && guidelinesRef.current) {
+    const defaultPoints = [
+      {
+        point: fakeCanvasRect.current
+          ? ((a) => {
+              return (-a.width * a.scaleX) / 2;
+            })(fakeCanvasRect.current)
+          : 0,
+        vertical: true,
+      },
+      {
+        point: 0,
+        vertical: true,
+      },
+      {
+        point: fakeCanvasRect.current
+          ? ((a) => {
+              return (a.width * a.scaleX) / 2;
+            })(fakeCanvasRect.current)
+          : 0,
+        vertical: true,
+      },
+      {
+        point: fakeCanvasRect.current
+          ? ((a) => {
+              return (-a.height * a.scaleY) / 2;
+            })(fakeCanvasRect.current)
+          : 0,
+        vertical: false,
+      },
+      {
+        point: 0,
+        vertical: false,
+      },
+      {
+        point: fakeCanvasRect.current
+          ? ((a) => {
+              return (a.height * a.scaleY) / 2;
+            })(fakeCanvasRect.current)
+          : 0,
+        vertical: false,
+      },
+    ];
+    guidePoints = [...guidePoints, ...defaultPoints];
+
     const left =
       obj.left - fakeCanvasRect.current.left - (obj.width * obj.scaleX) / 2;
     const right = left + obj.width * obj.scaleX;

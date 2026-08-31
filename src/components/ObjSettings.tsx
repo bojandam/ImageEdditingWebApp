@@ -1,10 +1,24 @@
-import { useEffect, useRef, useState, type BaseSyntheticEvent } from "react";
-import { Canvas, Circle, FabricObject, Rect, type TFiller } from "fabric";
+import {
+  useEffect,
+  useRef,
+  useState,
+  type BaseSyntheticEvent,
+  type RefObject,
+} from "react";
+import {
+  Canvas,
+  Circle,
+  FabricObject,
+  Polyline,
+  Rect,
+  type TFiller,
+} from "fabric";
 import { Accordion, Row } from "react-bootstrap";
 import PTextField from "./PTextField";
 import { handleMovingSnap } from "../util/Snapping";
 interface props {
   canvas: Canvas | undefined;
+  fakeCanvasRect: RefObject<Rect | null>;
 }
 
 interface objProps {
@@ -19,12 +33,12 @@ interface objProps {
   angle?: number;
 }
 
-const ObjSettings = ({ canvas }: props) => {
+const ObjSettings = ({ canvas, fakeCanvasRect }: props) => {
   const [selectedObject, setSelectedObject] = useState<any>(null);
   const [objProperties, setObjProperties] = useState<objProps>({});
   const [isEmpty, setIsEmpty] = useState<boolean>(true);
-  // const [isMouseOver, setIsMouseOver] = useState<boolean>(false);
-  // const isMouseOverRef = useRef<boolean>(false);
+
+  const guidelinesRef = useRef<Polyline[]>([]);
 
   useEffect(() => {
     if (canvas) {
@@ -40,6 +54,12 @@ const ObjSettings = ({ canvas }: props) => {
       });
       canvas.on("object:modified", (e) => handleObjectSelection(e.target));
       canvas.on("object:scaling", (e) => handleObjectSelection(e.target));
+      canvas.on("object:moving", (e) => {
+        handleMovingSnap(canvas, fakeCanvasRect, e.target, [], guidelinesRef);
+      });
+      canvas.on("object:modified", () => {
+        canvas.remove(...guidelinesRef.current);
+      });
       canvas.on("object:moving", (e) => handleObjectSelection(e.target));
 
       // canvas.upperCanvasEl.addEventListener("mouseenter", () => {
