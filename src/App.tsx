@@ -10,10 +10,12 @@ import {
   Group,
   initFilterBackend,
   Point,
+  Polyline,
   Rect,
 } from "fabric";
 import ObjSettings from "./components/ObjSettings";
 import CanvasSettings from "./components/CanvasSettings";
+import { handleMovingSnap } from "./util/Snapping";
 const App = () => {
   const [canvas, setCanvas] = useState<Canvas>();
   const canvasRef = useRef(null);
@@ -23,6 +25,8 @@ const App = () => {
   const [windowWidth, setWindowWidth] = useState<number>(innerWidth);
   const [windowHeight, setWindowHeight] = useState<number>(innerHeight);
   const [zoom, setZoom] = useState<number>(100);
+  const guidelinesRef = useRef<Polyline[]>([]);
+
   useEffect(() => {
     window.addEventListener("resize", handleResize);
     handleResize();
@@ -51,6 +55,63 @@ const App = () => {
       };
     }
   }, []);
+  useEffect(() => {
+    if (canvas) {
+      canvas.on("object:moving", (e) => {
+        handleMovingSnap(
+          canvas,
+          fakeCanvasRect,
+          e.target,
+          [
+            {
+              point: fakeCanvasRect.current
+                ? ((a) => {
+                    return (-a.width * a.scaleX) / 2;
+                  })(fakeCanvasRect.current)
+                : 0,
+              vertical: true,
+            },
+            {
+              point: 0,
+              vertical: true,
+            },
+            {
+              point: fakeCanvasRect.current
+                ? ((a) => {
+                    return (a.width * a.scaleX) / 2;
+                  })(fakeCanvasRect.current)
+                : 0,
+              vertical: true,
+            },
+            {
+              point: fakeCanvasRect.current
+                ? ((a) => {
+                    return (-a.height * a.scaleY) / 2;
+                  })(fakeCanvasRect.current)
+                : 0,
+              vertical: false,
+            },
+            {
+              point: 0,
+              vertical: false,
+            },
+            {
+              point: fakeCanvasRect.current
+                ? ((a) => {
+                    return (a.height * a.scaleY) / 2;
+                  })(fakeCanvasRect.current)
+                : 0,
+              vertical: false,
+            },
+          ],
+          guidelinesRef,
+        );
+      });
+      canvas.on("object:modified", (e) => {
+        canvas.remove(...guidelinesRef.current);
+      });
+    }
+  }, [canvas]);
   const buttonList = [
     {
       id: 0,
@@ -89,19 +150,25 @@ const App = () => {
     },
     {
       id: 2,
-      icon: "circle",
+      icon: "arrows-angle-expand",
       onClick: () => {
-        const circle = new Circle({
-          fill: "#AAFFFF",
-          radius: 40,
-          stroke: "#FFFFFF00",
-          top: canvas?.getCenterPoint().y,
-          left: canvas?.getCenterPoint().x,
-        });
-        // fakeCanvasGroup.current?.add(circle);
-        canvas?.add(circle);
-        console.log(fakeCanvasClip.current);
-        // circle.clipPath = fakeCanvasClip.current;
+        const line = new Polyline(
+          [
+            { x: 10, y: 10 },
+            { x: 50, y: 30 },
+            { x: 40, y: 70 },
+            { x: 60, y: 50 },
+            { x: 100, y: 150 },
+            { x: 40, y: 100 },
+          ],
+          {
+            stroke: "red",
+            left: canvas?.getCenterPoint().x,
+            top: canvas?.getCenterPoint().y,
+          },
+        );
+        canvas?.add(line);
+        if (fakeCanvasClip.current) line.clipPath = fakeCanvasClip.current;
       },
     },
     {
@@ -169,8 +236,10 @@ const App = () => {
         <div className="me-3 pe-auto">
           <div className="" style={{ width: "300px" }}>
             <Accordion defaultActiveKey={["0", "1"]} alwaysOpen tabIndex={0}>
-              <Accordion.Item eventKey="0">
-                <Accordion.Header>Object Properties</Accordion.Header>
+              <Accordion.Item eventKey="0" tabIndex={-1}>
+                <Accordion.Header tabIndex={-1}>
+                  Object Properties
+                </Accordion.Header>
                 <Accordion.Body className="">
                   <ObjSettings canvas={canvas}></ObjSettings>
                 </Accordion.Body>

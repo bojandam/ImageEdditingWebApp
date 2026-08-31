@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState, type BaseSyntheticEvent } from "react";
-import { Canvas, FabricObject, Rect, type TFiller } from "fabric";
+import { Canvas, Circle, FabricObject, Rect, type TFiller } from "fabric";
 import { Accordion, Row } from "react-bootstrap";
 import PTextField from "./PTextField";
+import { handleMovingSnap } from "../util/Snapping";
 interface props {
   canvas: Canvas | undefined;
 }
@@ -24,6 +25,7 @@ const ObjSettings = ({ canvas }: props) => {
   const [isEmpty, setIsEmpty] = useState<boolean>(true);
   // const [isMouseOver, setIsMouseOver] = useState<boolean>(false);
   // const isMouseOverRef = useRef<boolean>(false);
+
   useEffect(() => {
     if (canvas) {
       canvas.on("selection:created", (e) => {
@@ -60,17 +62,16 @@ const ObjSettings = ({ canvas }: props) => {
       p.width = Math.round(obj.width * obj.scaleX);
       p.height = Math.round(obj.height * obj.scaleY);
     } else if (obj.type === "circle") {
-      p.radius = Math.round(obj.radius * obj.scaleX);
+      p.radius = Math.round((obj as Circle).radius * obj.scaleX);
     }
     if (canvas) {
-      p.left = Math.round(obj.getX() - canvas.getCenterPoint().x);
-      p.top = Math.round(obj.getY() - canvas.getCenterPoint().y);
+      p.left = Math.round(obj.left - canvas.getCenterPoint().x);
+      p.top = Math.round(obj.top - canvas.getCenterPoint().y);
     }
     p.fill = obj.fill;
     p.stroke = obj.stroke;
     p.strokeWidth = obj.strokeWidth;
     p.angle = obj.angle;
-    console.log(p.stroke?.toString);
 
     setObjProperties(p);
     setIsEmpty(false);
