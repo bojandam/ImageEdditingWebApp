@@ -1,6 +1,7 @@
 import type { TFiller } from "fabric";
-import React, { type ReactNode, type SyntheticEvent } from "react";
+import React, { useContext, type ReactNode, type SyntheticEvent } from "react";
 import { Col, Form, InputGroup, Row } from "react-bootstrap";
+import { FocusContext } from "../hooks/FocusTracker";
 
 interface Props {
   label: string | ReactNode;
@@ -12,6 +13,15 @@ interface Props {
 }
 
 const PTextField = ({ label, value, formId, type, unit, onChange }: Props) => {
+  const { isImportaintFocusRef } = useContext(FocusContext)!;
+  const handleOnFocus = () => {
+    console.log("InsideFocus");
+    isImportaintFocusRef.current = true;
+  };
+  const handleOnBlur = () => {
+    console.log("InsideDefocus");
+    isImportaintFocusRef.current = false;
+  };
   return (
     <>
       {value !== undefined && (
@@ -31,6 +41,8 @@ const PTextField = ({ label, value, formId, type, unit, onChange }: Props) => {
               id={formId}
               value={value}
               onChange={onChange}
+              onFocus={handleOnFocus}
+              onBlur={handleOnBlur}
             />
             {unit && (
               <InputGroup.Text

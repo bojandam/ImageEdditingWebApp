@@ -13,7 +13,7 @@ import {
   Rect,
   type TFiller,
 } from "fabric";
-import { Accordion, Row } from "react-bootstrap";
+import { Button, Row } from "react-bootstrap";
 import PTextField from "./PTextField";
 import { handleMovingSnap } from "../util/Snapping";
 interface props {
@@ -134,6 +134,7 @@ const ObjSettings = ({ canvas, fakeCanvasRect }: props) => {
   };
   const handleTopChange = (e: BaseSyntheticEvent) => {
     const intValue = parseToInt(e.target?.value);
+    (selectedObject as any).selektirano = true;
 
     if (selectedObject && canvas && (intValue >= 0 || intValue < 0)) {
       setObjProperties({ ...objProperties, top: intValue });
@@ -219,7 +220,6 @@ const ObjSettings = ({ canvas, fakeCanvasRect }: props) => {
           unit="px"
           onChange={handleHeightChange}
         />
-        {/* </Row><Row> */}
         <PTextField
           label="X:"
           value={objProperties.left}
@@ -234,8 +234,6 @@ const ObjSettings = ({ canvas, fakeCanvasRect }: props) => {
           unit="px"
           onChange={handleTopChange}
         />
-        {/* </Row>
-                    <Row> */}
         <PTextField
           label="R:"
           value={objProperties.radius}
@@ -243,9 +241,6 @@ const ObjSettings = ({ canvas, fakeCanvasRect }: props) => {
           unit="px"
           onChange={handleRadiusChange}
         />
-        {/* </Row>
-              <Row> */}
-
         <PTextField
           label={<i className="bi bi-arrow-clockwise"></i>}
           value={objProperties.angle}
@@ -260,8 +255,6 @@ const ObjSettings = ({ canvas, fakeCanvasRect }: props) => {
           type="color"
           onChange={handleFillChange}
         />
-        {/* {</Row>
-              <Row>} */}
         <PTextField
           label="BC:"
           value={objProperties.stroke?.toString()}
@@ -276,9 +269,6 @@ const ObjSettings = ({ canvas, fakeCanvasRect }: props) => {
           unit="px"
           onChange={handleStrokeWidthChange}
         />
-        {/* <p>{isMouseOver ? "True" : "False"}</p> */}
-        {/* {</Row>
-              <Row>} */}
         {isEmpty && (
           <p className="fs-6 "> Select an object to modifiy their properties</p>
         )}

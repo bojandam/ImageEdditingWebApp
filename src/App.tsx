@@ -16,6 +16,9 @@ import {
 import ObjSettings from "./components/ObjSettings";
 import CanvasSettings from "./components/CanvasSettings";
 import { handleMovingSnap } from "./util/Snapping";
+import Layers from "./components/Layers";
+import { HelpFocus } from "./components/HelpFocus";
+import { FocusContext } from "./hooks/FocusTracker";
 const App = () => {
   const [canvas, setCanvas] = useState<Canvas>();
   const canvasRef = useRef(null);
@@ -25,7 +28,9 @@ const App = () => {
   const [windowWidth, setWindowWidth] = useState<number>(innerWidth);
   const [windowHeight, setWindowHeight] = useState<number>(innerHeight);
   const [zoom, setZoom] = useState<number>(100);
-
+  const canvasShellRef = useRef<HTMLInputElement>(null);
+  // const [isImportaintFocus, setIsImportaintFocus] = useState(false);
+  const isImportaintFocusRef = useRef<boolean>(false);
   useEffect(() => {
     window.addEventListener("resize", handleResize);
     handleResize();
@@ -38,7 +43,6 @@ const App = () => {
     const treshold = 768;
     return windowWidth < treshold;
   };
-
   useEffect(() => {
     if (canvasRef.current) {
       const innitCanvas = new Canvas(canvasRef.current, {
@@ -55,40 +59,43 @@ const App = () => {
     }
   }, []);
 
+  const createObject = (obj: FabricObject) => {
+    (obj as any).isObject = true;
+    (obj as any).isVisible = true;
+    if (canvas) canvas.add(obj);
+    if (fakeCanvasClip.current) obj.clipPath = fakeCanvasClip.current;
+  };
+
   const buttonList = [
     {
       id: 0,
       icon: "square",
       onClick: () => {
-        console.log("square clicked");
-        const square = new Rect({
-          width: 150,
-          height: 150,
-          top: canvas?.getCenterPoint().y,
-          left: canvas?.getCenterPoint().x,
-          fill: "#FFAAAA",
-          stroke: "#FFFFFF00",
-        });
-        // fakeCanvasGroup.current?.add(square);
-        canvas?.add(square);
-        if (fakeCanvasClip.current) square.clipPath = fakeCanvasClip.current;
+        createObject(
+          new Rect({
+            width: 150,
+            height: 150,
+            top: canvas?.getCenterPoint().y,
+            left: canvas?.getCenterPoint().x,
+            fill: "#FFAAAA",
+            stroke: "#FFFFFF00",
+          }),
+        );
       },
     },
     {
       id: 1,
       icon: "circle",
       onClick: () => {
-        const circle = new Circle({
-          fill: "#AAFFFF",
-          radius: 40,
-          stroke: "#FFFFFF00",
-          top: canvas?.getCenterPoint().y,
-          left: canvas?.getCenterPoint().x,
-        });
-        // fakeCanvasGroup.current?.add(circle);
-        canvas?.add(circle);
-        console.log(fakeCanvasClip.current);
-        if (fakeCanvasClip.current) circle.clipPath = fakeCanvasClip.current;
+        createObject(
+          new Circle({
+            fill: "#AAFFFF",
+            radius: 40,
+            stroke: "#FFFFFF00",
+            top: canvas?.getCenterPoint().y,
+            left: canvas?.getCenterPoint().x,
+          }),
+        );
       },
     },
     {
@@ -148,6 +155,15 @@ const App = () => {
     }
   };
 
+  const handleOnFocusRefocusor = () => {
+    console.log("Outside:");
+    if (isImportaintFocusRef.current === false && canvasShellRef.current) {
+      canvasShellRef.current.focus();
+      console.log("Refocused to canvas");
+    }
+    console.log("Done outside");
+  };
+
   return (
     <div className="w-100 h-100">
       {/* Canvas */}
@@ -156,6 +172,7 @@ const App = () => {
           className="my-auto focus-ring shadow-none"
           onKeyDown={handleCanvasKeyDown}
           tabIndex={0}
+          ref={canvasShellRef}
         >
           <canvas id="canvas1" ref={canvasRef}></canvas>
         </div>
@@ -178,34 +195,47 @@ const App = () => {
         {/* Settings */}
         <div className="me-3 pe-auto">
           <div className="" style={{ width: "300px" }}>
-            <Accordion defaultActiveKey={["0", "1"]} alwaysOpen tabIndex={0}>
-              <Accordion.Item eventKey="0" tabIndex={-1}>
-                <Accordion.Header tabIndex={-1}>
-                  Object Properties
-                </Accordion.Header>
-                <Accordion.Body className="">
-                  <ObjSettings
-                    canvas={canvas}
-                    fakeCanvasRect={fakeCanvasRect}
-                  ></ObjSettings>
-                </Accordion.Body>
-              </Accordion.Item>
-              <Accordion.Item eventKey="1">
-                <Accordion.Header>Canvas Properties</Accordion.Header>
-                <Accordion.Body>
-                  <CanvasSettings
-                    canvas={canvas}
-                    fakeCanvasRect={fakeCanvasRect}
-                    fakeCanvasClip={fakeCanvasClip}
-                    fakeCanvasCenter={fakeCanvasCenter}
-                    zoom={zoom}
-                    setZoom={(zoom) => {
-                      setZoom(zoom);
-                    }}
-                  ></CanvasSettings>
-                </Accordion.Body>
-              </Accordion.Item>
-            </Accordion>
+            <FocusContext.Provider value={{ isImportaintFocusRef }}>
+              <Accordion
+                defaultActiveKey={["0", "1", "2"]}
+                alwaysOpen
+                tabIndex={0}
+                onFocus={handleOnFocusRefocusor}
+              >
+                <Accordion.Item eventKey="0" tabIndex={-1} id="PLs">
+                  <Accordion.Header tabIndex={-1}>
+                    Object Properties
+                  </Accordion.Header>
+                  <Accordion.Body className="">
+                    <ObjSettings
+                      canvas={canvas}
+                      fakeCanvasRect={fakeCanvasRect}
+                    ></ObjSettings>
+                  </Accordion.Body>
+                </Accordion.Item>
+                <Accordion.Item eventKey="1">
+                  <Accordion.Header>Canvas Properties</Accordion.Header>
+                  <Accordion.Body>
+                    <CanvasSettings
+                      canvas={canvas}
+                      fakeCanvasRect={fakeCanvasRect}
+                      fakeCanvasClip={fakeCanvasClip}
+                      fakeCanvasCenter={fakeCanvasCenter}
+                      zoom={zoom}
+                      setZoom={(zoom) => {
+                        setZoom(zoom);
+                      }}
+                    ></CanvasSettings>
+                  </Accordion.Body>
+                </Accordion.Item>
+                <Accordion.Item eventKey="2">
+                  <Accordion.Header>Layers</Accordion.Header>
+                  <Accordion.Body>
+                    <Layers canvas={canvas!} />
+                  </Accordion.Body>
+                </Accordion.Item>
+              </Accordion>
+            </FocusContext.Provider>
           </div>
         </div>
       </div>
