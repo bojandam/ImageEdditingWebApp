@@ -37,7 +37,7 @@ const ObjSettings = ({ canvas, fakeCanvasRect }: props) => {
   const [selectedObject, setSelectedObject] = useState<any>(null);
   const [objProperties, setObjProperties] = useState<objProps>({});
   const [isEmpty, setIsEmpty] = useState<boolean>(true);
-
+  const ctrlDownRef = useRef<boolean>(false);
   const guidelinesRef = useRef<Polyline[]>([]);
 
   useEffect(() => {
@@ -55,26 +55,28 @@ const ObjSettings = ({ canvas, fakeCanvasRect }: props) => {
       canvas.on("object:modified", (e) => handleObjectSelection(e.target));
       canvas.on("object:scaling", (e) => handleObjectSelection(e.target));
       canvas.on("object:moving", (e) => {
-        handleMovingSnap(canvas, fakeCanvasRect, e.target, [], guidelinesRef);
+        if (ctrlDownRef.current)
+          handleMovingSnap(canvas, fakeCanvasRect, e.target, [], guidelinesRef);
+        else {
+          canvas.remove(...guidelinesRef.current);
+        }
       });
       canvas.on("object:modified", () => {
         canvas.remove(...guidelinesRef.current);
       });
-      canvas.on("object:moving", (e) => handleObjectSelection(e.target));
-
-      // canvas.upperCanvasEl.addEventListener("mouseenter", () => {
-      //   setIsMouseOver(true);
-      //   isMouseOverRef.current = true;
-      // });
-
-      // canvas.upperCanvasEl.addEventListener("mouseleave", () => {
-      //   setIsMouseOver(false);
-      //   isMouseOverRef.current = false;
-      // });
-
-      // document.addEventListener("keydown", handleKeydown);
+      canvas.on("object:moving", (e) => {
+        handleObjectSelection(e.target);
+      });
     }
   }, [canvas]);
+  useEffect(() => {
+    addEventListener("keydown", (e) => {
+      if (e.ctrlKey) ctrlDownRef.current = true;
+    });
+    addEventListener("keyup", (e) => {
+      if (!e.ctrlKey) ctrlDownRef.current = false;
+    });
+  }, []);
 
   const handleObjectSelection = (obj: FabricObject) => {
     let p: objProps = {};
@@ -103,27 +105,7 @@ const ObjSettings = ({ canvas, fakeCanvasRect }: props) => {
     setIsEmpty(true);
     setSelectedObject(null);
   };
-  // const handleKeydown = (e) => {
-  //   if ((e.which === 8 || e.which == 46) && isMouseOverRef.current) {
-  //     console.log("Delete");
-  //     deleteElemetnt();
-  //   }
-  // };
-  // const deleteElemetnt = () => {
-  //   if (canvas) {
-  //     const obj = canvas.getActiveObject();
-  //     if (obj) {
-  //       if (obj.type === "activeselection") {
-  //         obj.getObjects().forEach((el) => {
-  //           canvas.remove(el);
-  //         });
-  //       } else {
-  //         canvas.remove(obj);
-  //       }
-  //       canvas.discardActiveObject();
-  //     }
-  //   }
-  // };
+
   const parseToInt = (x: string) => {
     return x === "" ? 0 : parseInt(x.replace(/,/g, ""), 10);
   };
