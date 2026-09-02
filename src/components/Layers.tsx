@@ -86,9 +86,10 @@ const Layers = ({ canvas }: { canvas: Canvas }) => {
       console.log("Out of range :(  :", i + offset);
     }
     const activeObj = new ActiveSelection(selection);
-    console.log("ActiveObject: ", activeObj);
+    const bgColor = canvas.backgroundColor;
     canvas.clear();
     canvas.add(...arr);
+    canvas.backgroundColor = bgColor;
     if (activeObj) canvas.setActiveObject(activeObj);
   };
   const handleMoveUp = () => {
