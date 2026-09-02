@@ -159,7 +159,6 @@ export function handleMovingSnap(
       obj.set({ top: minHPos! + fakeCanvasRect.current.top });
     }
     if (snappedV || snappedH) {
-      console.log("NewLines: ", newGuidelines);
       guidelinesRef.current = [...newGuidelines];
       canvas.requestRenderAll();
     }

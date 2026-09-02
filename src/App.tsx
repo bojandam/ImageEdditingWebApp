@@ -22,14 +22,17 @@ import { FocusContext } from "./hooks/FocusTracker";
 const App = () => {
   const [canvas, setCanvas] = useState<Canvas>();
   const canvasRef = useRef(null);
+
   const fakeCanvasRect = useRef<Rect>(null);
   const fakeCanvasCenter = useRef<Point>(null);
   const fakeCanvasClip = useRef<Rect>(null);
+  const [zoom, setZoom] = useState<number>(100);
+
+  //For Mobile Detection
   const [windowWidth, setWindowWidth] = useState<number>(innerWidth);
   const [windowHeight, setWindowHeight] = useState<number>(innerHeight);
-  const [zoom, setZoom] = useState<number>(100);
+  //Focus stuff
   const canvasShellRef = useRef<HTMLInputElement>(null);
-  // const [isImportaintFocus, setIsImportaintFocus] = useState(false);
   const isImportaintFocusRef = useRef<boolean>(false);
   useEffect(() => {
     window.addEventListener("resize", handleResize);
@@ -59,79 +62,6 @@ const App = () => {
     }
   }, []);
 
-  const createObject = (obj: FabricObject) => {
-    (obj as any).isObject = true;
-    (obj as any).isVisible = true;
-    if (canvas) canvas.add(obj);
-    if (fakeCanvasClip.current) obj.clipPath = fakeCanvasClip.current;
-  };
-
-  const buttonList = [
-    {
-      id: 0,
-      icon: "square",
-      onClick: () => {
-        createObject(
-          new Rect({
-            width: 150,
-            height: 150,
-            top: canvas?.getCenterPoint().y,
-            left: canvas?.getCenterPoint().x,
-            fill: "#FFAAAA",
-            stroke: "#FFFFFF00",
-          }),
-        );
-      },
-    },
-    {
-      id: 1,
-      icon: "circle",
-      onClick: () => {
-        createObject(
-          new Circle({
-            fill: "#AAFFFF",
-            radius: 40,
-            stroke: "#FFFFFF00",
-            top: canvas?.getCenterPoint().y,
-            left: canvas?.getCenterPoint().x,
-          }),
-        );
-      },
-    },
-    {
-      id: 2,
-      icon: "arrows-angle-expand",
-      onClick: () => {
-        const line = new Polyline(
-          [
-            { x: 10, y: 10 },
-            { x: 50, y: 30 },
-            { x: 40, y: 70 },
-            { x: 60, y: 50 },
-            { x: 100, y: 150 },
-            { x: 40, y: 100 },
-          ],
-          {
-            stroke: "red",
-            left: canvas?.getCenterPoint().x,
-            top: canvas?.getCenterPoint().y,
-          },
-        );
-        canvas?.add(line);
-        if (fakeCanvasClip.current) line.clipPath = fakeCanvasClip.current;
-      },
-    },
-    {
-      id: 3,
-      icon: "house-gear",
-      onClick: () => {
-        if (canvas) {
-          canvas.setViewportTransform([1, 0, 0, 1, 0, 0]);
-          setZoom(100);
-        }
-      },
-    },
-  ];
   const handleCanvasKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
     console.log("Keydown: ", e);
     if (["Backspace", "Delete"].includes(e.key)) {
@@ -164,6 +94,56 @@ const App = () => {
     console.log("Done outside");
   };
 
+  const createObject = (obj: FabricObject) => {
+    (obj as any).isObject = true;
+    (obj as any).isVisible = true;
+    if (canvas) canvas.add(obj);
+    if (fakeCanvasClip.current) obj.clipPath = fakeCanvasClip.current;
+  };
+
+  const buttonList = [
+    {
+      id: 0,
+      icon: "square",
+      onClick: () => {
+        console.log("Square Clicked");
+        createObject(
+          new Rect({
+            width: 150,
+            height: 150,
+            top: canvas?.getCenterPoint().y,
+            left: canvas?.getCenterPoint().x,
+            fill: "#FFAAAA",
+          }),
+        );
+      },
+    },
+    {
+      id: 1,
+      icon: "circle",
+      onClick: () => {
+        createObject(
+          new Circle({
+            fill: "#AAFFFF",
+            radius: 40,
+            top: canvas?.getCenterPoint().y,
+            left: canvas?.getCenterPoint().x,
+          }),
+        );
+      },
+    },
+    {
+      id: 2,
+      icon: "house-gear",
+      onClick: () => {
+        if (canvas) {
+          canvas.setViewportTransform([1, 0, 0, 1, 0, 0]);
+          setZoom(100);
+        }
+      },
+    },
+  ];
+
   return (
     <div className="w-100 h-100">
       {/* Canvas */}
@@ -184,7 +164,12 @@ const App = () => {
             <ButtonGroup vertical={!isMobile()} className="">
               {buttonList.map((el) => {
                 return (
-                  <Button variant="secondary" onClick={el.onClick} key={el.id}>
+                  <Button
+                    variant="secondary"
+                    onClick={el.onClick}
+                    key={el.id}
+                    onFocus={handleOnFocusRefocusor}
+                  >
                     <i className={"bi bi-" + el.icon}></i>
                   </Button>
                 );
@@ -201,6 +186,8 @@ const App = () => {
                 alwaysOpen
                 tabIndex={0}
                 onFocus={handleOnFocusRefocusor}
+                style={{ maxHeight: "95vh" }}
+                className="overflow-y-auto"
               >
                 <Accordion.Item eventKey="0" tabIndex={-1} id="PLs">
                   <Accordion.Header tabIndex={-1}>

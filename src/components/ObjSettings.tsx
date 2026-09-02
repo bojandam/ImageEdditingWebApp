@@ -31,6 +31,7 @@ interface objProps {
   strokeWidth?: number;
   stroke?: string | TFiller | null;
   angle?: number;
+  name?: string;
 }
 
 const ObjSettings = ({ canvas, fakeCanvasRect }: props) => {
@@ -90,10 +91,13 @@ const ObjSettings = ({ canvas, fakeCanvasRect }: props) => {
       p.left = Math.round(obj.left - canvas.getCenterPoint().x);
       p.top = Math.round(obj.top - canvas.getCenterPoint().y);
     }
-    p.fill = obj.fill;
-    p.stroke = obj.stroke;
-    p.strokeWidth = obj.strokeWidth;
+    if (obj.type != "activeselection") {
+      p.fill = obj.fill;
+      p.stroke = obj.stroke || "#FFFFFF";
+      p.strokeWidth = obj.strokeWidth;
+    }
     p.angle = obj.angle;
+    p.name = obj.type === "activeselection" ? "Selection" : obj.type;
 
     setObjProperties(p);
     setIsEmpty(false);
@@ -206,6 +210,7 @@ const ObjSettings = ({ canvas, fakeCanvasRect }: props) => {
   return (
     <>
       <Row className="flex-wrap ps-2 pe-1" style={{}}>
+        <h6 className="text-capitalize">{objProperties.name}</h6>
         <PTextField
           label="W:"
           value={objProperties.width}
