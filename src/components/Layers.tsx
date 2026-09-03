@@ -172,7 +172,7 @@ const Layers = ({ canvas }: { canvas: Canvas }) => {
                   canvas.requestRenderAll();
                 }}
               >
-                {el.type}
+                {(el as any).name || el.type}
               </ToggleButton>
               <Button
                 className="text-center col-2 border-0"

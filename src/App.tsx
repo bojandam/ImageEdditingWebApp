@@ -15,7 +15,7 @@ import { saveAs } from "file-saver";
 import ObjSettings from "./components/ObjSettings";
 import CanvasSettings from "./components/CanvasSettings";
 import Layers from "./components/Layers";
-import { FocusContext } from "./hooks/FocusTracker";
+import { FocusContext } from "./context/FocusTracker";
 import { zoomToFitObject } from "./util/Transformations";
 const App = () => {
   const [canvas, setCanvas] = useState<Canvas>();
@@ -32,9 +32,11 @@ const App = () => {
   //For Mobile Detection
   const [windowWidth, setWindowWidth] = useState<number>(innerWidth);
   const [windowHeight, setWindowHeight] = useState<number>(innerHeight);
+
   //Focus stuff
   const canvasShellRef = useRef<HTMLInputElement>(null);
   const isImportaintFocusRef = useRef<boolean>(false);
+
   useEffect(() => {
     window.addEventListener("resize", handleResize);
     handleResize();
@@ -98,6 +100,10 @@ const App = () => {
   const createObject = (obj: FabricObject) => {
     (obj as any).isObject = true;
     (obj as any).isVisible = true;
+    obj.set({
+      top: canvas?.getCenterPoint().y,
+      left: canvas?.getCenterPoint().x,
+    });
     if (canvas) canvas.add(obj);
     if (fakeCanvasClip.current) obj.clipPath = fakeCanvasClip.current;
   };
@@ -140,6 +146,20 @@ const App = () => {
         }
       },
     },
+    {
+      icon: "image",
+      onClick: () => {
+        if (canvas) {
+          const image = new FabricImage("./src/img/car1.png", {
+            width: 500,
+            height: 500,
+          });
+          console.log("Img:", image);
+          createObject(image);
+        }
+      },
+    },
+
     // {
     //   icon: "house-gear-fill",
     //   onClick: () => {
@@ -184,6 +204,17 @@ const App = () => {
     // });
   };
 
+  const addImage = (file: Blob) => {
+    const fileReader = new FileReader();
+    fileReader.readAsDataURL(file);
+    fileReader.onload = () => {
+      console.log(fileReader.result);
+      FabricImage.fromURL(fileReader.result!.toString()).then((img) => {
+        (img as any).name = (file as File).name;
+        createObject(img);
+      });
+    };
+  };
   return (
     <div className="w-100 h-100">
       {/* Canvas */}
@@ -193,6 +224,19 @@ const App = () => {
           onKeyDown={handleCanvasKeyDown}
           tabIndex={0}
           ref={canvasShellRef}
+          onPaste={(e) => {
+            console.log("Pasted: ", e);
+            console.log("Data types: ", e.clipboardData.types);
+            if (
+              e.clipboardData.types.includes("Files") &&
+              e.clipboardData.files[0].type.startsWith("image/")
+            ) {
+              console.log("Image :) ", e.clipboardData.files[0]);
+              addImage(e.clipboardData.files[0]);
+            } else {
+              console.log("No Files :( ");
+            }
+          }}
         >
           <canvas id="canvas1" ref={canvasRef}></canvas>
         </div>

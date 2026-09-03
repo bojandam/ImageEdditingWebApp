@@ -1,7 +1,7 @@
 import type { TFiller } from "fabric";
 import React, { useContext, type ReactNode, type SyntheticEvent } from "react";
 import { Col, Form, InputGroup, Row } from "react-bootstrap";
-import { FocusContext } from "../hooks/FocusTracker";
+import { FocusContext } from "../context/FocusTracker";
 
 interface Props {
   label: string | ReactNode;

@@ -32,6 +32,8 @@ interface objProps {
   stroke?: string | TFiller | null;
   angle?: number;
   name?: string;
+  iWidth?: number; //specifically for images, where you shouldn't play with width and height, but with scale
+  iHeight?: number;
 }
 
 const ObjSettings = ({ canvas, fakeCanvasRect }: props) => {
@@ -81,7 +83,7 @@ const ObjSettings = ({ canvas, fakeCanvasRect }: props) => {
 
   const handleObjectSelection = (obj: FabricObject) => {
     let p: objProps = {};
-    if (obj.type === "rect") {
+    if (["rect"].includes(obj.type)) {
       p.width = Math.round(obj.width * obj.scaleX);
       p.height = Math.round(obj.height * obj.scaleY);
     } else if (obj.type === "circle") {
@@ -91,7 +93,7 @@ const ObjSettings = ({ canvas, fakeCanvasRect }: props) => {
       p.left = Math.round(obj.left - canvas.getCenterPoint().x);
       p.top = Math.round(obj.top - canvas.getCenterPoint().y);
     }
-    if (obj.type != "activeselection") {
+    if (!["activeselection", "image"].includes(obj.type)) {
       p.fill = obj.fill;
       p.stroke = obj.stroke || "#FFFFFF";
       p.strokeWidth = obj.strokeWidth;
