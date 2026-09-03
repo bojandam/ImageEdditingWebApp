@@ -7,6 +7,7 @@ import {
 import PTextField from "./PTextField";
 import { FabricObject, Point, Rect, type Canvas } from "fabric";
 import { Col, Row } from "react-bootstrap";
+import { zoomToFitObject } from "../util/Transformations";
 
 interface Props {
   canvas: Canvas | undefined;
@@ -15,6 +16,10 @@ interface Props {
   fakeCanvasCenter: RefObject<Point | null>;
   zoom: number | undefined;
   setZoom: (value: React.SetStateAction<number>) => void;
+  fakeWidth: number;
+  setFakeWidth: (value: React.SetStateAction<number>) => void;
+  fakeHeight: number;
+  setFakeHeight: (value: React.SetStateAction<number>) => void;
 }
 
 const CanvasSettings = ({
@@ -24,11 +29,13 @@ const CanvasSettings = ({
   fakeCanvasCenter,
   zoom,
   setZoom,
+  fakeHeight,
+  setFakeHeight,
+  fakeWidth,
+  setFakeWidth,
 }: Props) => {
   const [width, setWidth] = useState<number>();
   const [height, setHeight] = useState<number>();
-  const [fakeWidth, setFakeWidth] = useState<number>(750);
-  const [fakeHeight, setFakeHeight] = useState<number>(750);
 
   //dimensions setup
   useEffect(() => {
@@ -57,8 +64,8 @@ const CanvasSettings = ({
         });
 
       fakeCanvasRect.current = new Rect({
-        width: canvas.width * 2,
-        height: canvas.height * 2,
+        width: canvas.width,
+        height: canvas.height,
         left: canvas.getCenterPoint().x,
         top: canvas.getCenterPoint().y,
         fill: "#FFFFFF",
@@ -70,6 +77,8 @@ const CanvasSettings = ({
       if (fakeCanvasClip && fakeCanvasClip.current)
         fakeCanvasRect.current.clipPath = fakeCanvasClip.current;
       canvas.add(fakeCanvasRect.current);
+      zoomToFitObject(canvas, fakeCanvasRect.current);
+      setZoom(canvas.getZoom() * 100);
       canvas.requestRenderAll();
     }
   }, [canvas]);
@@ -197,10 +206,10 @@ const CanvasSettings = ({
   };
   return (
     <Row className="flex-wrap ps-2 pe-1" style={{}}>
-      <Col xs={1}>W:</Col>
+      {/* <Col xs={1}>W:</Col>
       <Col>{width}</Col>
       <Col xs={1}>H:</Col>
-      <Col>{height}</Col>
+      <Col>{height}</Col> */}
       <PTextField
         label="W:"
         value={fakeWidth}

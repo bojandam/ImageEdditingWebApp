@@ -6,19 +6,17 @@ import {
   ActiveSelection,
   Canvas,
   Circle,
+  FabricImage,
   FabricObject,
-  Group,
-  initFilterBackend,
   Point,
-  Polyline,
   Rect,
 } from "fabric";
+import { saveAs } from "file-saver";
 import ObjSettings from "./components/ObjSettings";
 import CanvasSettings from "./components/CanvasSettings";
-import { handleMovingSnap } from "./util/Snapping";
 import Layers from "./components/Layers";
-import { HelpFocus } from "./components/HelpFocus";
 import { FocusContext } from "./hooks/FocusTracker";
+import { zoomToFitObject } from "./util/Transformations";
 const App = () => {
   const [canvas, setCanvas] = useState<Canvas>();
   const canvasRef = useRef(null);
@@ -27,6 +25,9 @@ const App = () => {
   const fakeCanvasCenter = useRef<Point>(null);
   const fakeCanvasClip = useRef<Rect>(null);
   const [zoom, setZoom] = useState<number>(100);
+  //fake Canvas dimensoins
+  const [fakeWidth, setFakeWidth] = useState<number>(750);
+  const [fakeHeight, setFakeHeight] = useState<number>(750);
 
   //For Mobile Detection
   const [windowWidth, setWindowWidth] = useState<number>(innerWidth);
@@ -103,7 +104,6 @@ const App = () => {
 
   const buttonList = [
     {
-      id: 0,
       icon: "square",
       onClick: () => {
         console.log("Square Clicked");
@@ -119,7 +119,6 @@ const App = () => {
       },
     },
     {
-      id: 1,
       icon: "circle",
       onClick: () => {
         createObject(
@@ -133,16 +132,57 @@ const App = () => {
       },
     },
     {
-      id: 2,
       icon: "house-gear",
       onClick: () => {
-        if (canvas) {
-          canvas.setViewportTransform([1, 0, 0, 1, 0, 0]);
-          setZoom(100);
+        if (canvas && fakeCanvasRect.current) {
+          zoomToFitObject(canvas, fakeCanvasRect.current);
+          setZoom(canvas.getZoom() * 100);
         }
       },
     },
+    // {
+    //   icon: "house-gear-fill",
+    //   onClick: () => {
+    //     if (canvas) {
+    //       canvas.setViewportTransform([1, 0, 0, 1, 0, 0]);
+    //       setZoom(100);
+    //     }
+    //   },
+    // },
   ];
+
+  const handleExport = () => {
+    if (!fakeCanvasRect.current || !canvas) return;
+
+    const oldViewTransform = canvas.viewportTransform;
+    canvas.setViewportTransform([1, 0, 0, 1, 0, 0]);
+
+    const getOptions = (x: FabricObject) => {
+      return {
+        left: x.left - (x.width * x.scaleX) / 2,
+        top: x.top - (x.height * x.scaleY) / 2,
+        width: x.width * x.scaleX,
+        height: x.height * x.scaleY,
+      };
+    };
+
+    canvas
+      .toBlob({
+        multiplier: 1,
+        quality: 1,
+        format: "png",
+        ...getOptions(fakeCanvasRect.current),
+      })
+      .then((blob) => {
+        if (blob) saveAs(blob, "Canvas.png");
+        else console.error("Blob generation Failed :(");
+      });
+    canvas.setViewportTransform(oldViewTransform);
+    //   canvas.getElement().toBlob((blob) => {
+    //   if (blob) saveAs(blob, "Canvas.png");
+    //   else console.error("Blob generation Failed :(");
+    // });
+  };
 
   return (
     <div className="w-100 h-100">
@@ -157,37 +197,44 @@ const App = () => {
           <canvas id="canvas1" ref={canvasRef}></canvas>
         </div>
       </div>
-      <div className="d-flex w-100 h-100 position-fixed top-0 start-0 justify-content-between flex-md-row flex-column align-items-center pe-none">
-        {/* Toolbar */}
-        <div className="ms-1 pe-auto">
-          <ButtonToolbar className="">
-            <ButtonGroup vertical={!isMobile()} className="">
-              {buttonList.map((el) => {
-                return (
-                  <Button
-                    variant="secondary"
-                    onClick={el.onClick}
-                    key={el.id}
-                    onFocus={handleOnFocusRefocusor}
-                  >
-                    <i className={"bi bi-" + el.icon}></i>
-                  </Button>
-                );
-              })}
-            </ButtonGroup>
-          </ButtonToolbar>
-        </div>
-        {/* Settings */}
-        <div className="me-3 pe-auto">
-          <div className="" style={{ width: "300px" }}>
-            <FocusContext.Provider value={{ isImportaintFocusRef }}>
+      <FocusContext.Provider value={{ isImportaintFocusRef }}>
+        <div className="d-flex w-100 h-100 position-fixed top-0 start-0 justify-content-between flex-md-row flex-column align-items-center pe-none">
+          {/* Toolbar */}
+          <div className="ms-1 pe-auto">
+            <ButtonToolbar className="flex-column ">
+              <ButtonGroup
+                vertical={!isMobile()}
+                className=" mb-5"
+                onFocus={handleOnFocusRefocusor}
+              >
+                {buttonList.map((el, i) => {
+                  return (
+                    <Button variant="secondary" onClick={el.onClick} key={i}>
+                      <i className={"bi bi-" + el.icon}></i>
+                    </Button>
+                  );
+                })}
+              </ButtonGroup>
+              <ButtonGroup
+                vertical={!isMobile()}
+                onFocus={handleOnFocusRefocusor}
+              >
+                <Button className="" onClick={handleExport}>
+                  <i className="bi bi-box-arrow-right" />
+                </Button>
+              </ButtonGroup>
+            </ButtonToolbar>
+          </div>
+          {/* Settings */}
+          <div className="me-3 pe-auto">
+            <div className="" style={{ width: "300px" }}>
               <Accordion
                 defaultActiveKey={["0", "1", "2"]}
                 alwaysOpen
                 tabIndex={0}
                 onFocus={handleOnFocusRefocusor}
                 style={{ maxHeight: "95vh" }}
-                className="overflow-y-auto"
+                className="overflow-y-auto "
               >
                 <Accordion.Item eventKey="0" tabIndex={-1} id="PLs">
                   <Accordion.Header tabIndex={-1}>
@@ -208,6 +255,10 @@ const App = () => {
                       fakeCanvasRect={fakeCanvasRect}
                       fakeCanvasClip={fakeCanvasClip}
                       fakeCanvasCenter={fakeCanvasCenter}
+                      fakeHeight={fakeHeight}
+                      fakeWidth={fakeWidth}
+                      setFakeHeight={setFakeHeight}
+                      setFakeWidth={setFakeWidth}
                       zoom={zoom}
                       setZoom={(zoom) => {
                         setZoom(zoom);
@@ -215,17 +266,17 @@ const App = () => {
                     ></CanvasSettings>
                   </Accordion.Body>
                 </Accordion.Item>
-                <Accordion.Item eventKey="2">
+                <Accordion.Item eventKey="2" onFocus={handleOnFocusRefocusor}>
                   <Accordion.Header>Layers</Accordion.Header>
                   <Accordion.Body>
                     <Layers canvas={canvas!} />
                   </Accordion.Body>
                 </Accordion.Item>
               </Accordion>
-            </FocusContext.Provider>
+            </div>
           </div>
         </div>
-      </div>
+      </FocusContext.Provider>
     </div>
   );
 };

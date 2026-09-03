@@ -152,11 +152,23 @@ const Layers = ({ canvas }: { canvas: Canvas }) => {
                 checked={selection.includes(el)}
                 value={i}
                 onClick={(e) => {
-                  if (e.shiftKey)
-                    canvas.setActiveObject(
-                      new ActiveSelection([...selection, el]),
-                    );
-                  else canvas.setActiveObject(el);
+                  if (e.shiftKey) {
+                    if (selection.includes(el))
+                      canvas.setActiveObject(
+                        new ActiveSelection(
+                          selection.filter((x) => {
+                            return x !== el;
+                          }),
+                        ),
+                      );
+                    else
+                      canvas.setActiveObject(
+                        new ActiveSelection([...selection, el]),
+                      );
+                  } else {
+                    setSelection([]);
+                    canvas.setActiveObject(el);
+                  }
                   canvas.requestRenderAll();
                 }}
               >
