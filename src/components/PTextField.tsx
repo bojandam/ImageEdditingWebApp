@@ -10,9 +10,18 @@ interface Props {
   onChange: any;
   type?: string;
   unit?: string;
+  xs?: any;
 }
 
-const PTextField = ({ label, value, formId, type, unit, onChange }: Props) => {
+const PTextField = ({
+  label,
+  value,
+  formId,
+  type,
+  unit,
+  onChange,
+  xs = 6,
+}: Props) => {
   const { isImportaintFocusRef } = useContext(FocusContext)!;
   const handleOnFocus = () => {
     console.log("InsideFocus");
@@ -25,16 +34,16 @@ const PTextField = ({ label, value, formId, type, unit, onChange }: Props) => {
   return (
     <>
       {value !== undefined && (
-        <Col xs={6} className="row" style={{ boxSizing: "content-box" }}>
+        <Col xs={xs} className="row" style={{ boxSizing: "content-box" }}>
           {label && (
             <Form.Label
               htmlFor={formId}
-              className="col-2 px-0 text-secondary  my-auto"
+              className="col px-2 text-secondary text-start  my-auto"
             >
               {label}
             </Form.Label>
           )}
-          <InputGroup className="col ps-0 my-1">
+          <InputGroup className="col-9 px-1 my-1">
             <Form.Control
               className="border-end-0"
               type={type || "number"}

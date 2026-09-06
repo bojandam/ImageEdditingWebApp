@@ -146,19 +146,6 @@ const App = () => {
         }
       },
     },
-    {
-      icon: "image",
-      onClick: () => {
-        if (canvas) {
-          const image = new FabricImage("./src/img/car1.png", {
-            width: 500,
-            height: 500,
-          });
-          console.log("Img:", image);
-          createObject(image);
-        }
-      },
-    },
 
     // {
     //   icon: "house-gear-fill",
@@ -211,6 +198,7 @@ const App = () => {
       console.log(fileReader.result);
       FabricImage.fromURL(fileReader.result!.toString()).then((img) => {
         (img as any).name = (file as File).name;
+        (img as any).lockXY = true;
         createObject(img);
       });
     };
@@ -224,18 +212,12 @@ const App = () => {
           onKeyDown={handleCanvasKeyDown}
           tabIndex={0}
           ref={canvasShellRef}
-          onPaste={(e) => {
-            console.log("Pasted: ", e);
-            console.log("Data types: ", e.clipboardData.types);
+          onPaste={({ clipboardData }) => {
             if (
-              e.clipboardData.types.includes("Files") &&
-              e.clipboardData.files[0].type.startsWith("image/")
-            ) {
-              console.log("Image :) ", e.clipboardData.files[0]);
-              addImage(e.clipboardData.files[0]);
-            } else {
-              console.log("No Files :( ");
-            }
+              clipboardData.types.includes("Files") &&
+              clipboardData.files[0].type.startsWith("image/")
+            )
+              addImage(clipboardData.files[0]);
           }}
         >
           <canvas id="canvas1" ref={canvasRef}></canvas>
@@ -245,12 +227,13 @@ const App = () => {
         <div className="d-flex w-100 h-100 position-fixed top-0 start-0 justify-content-between flex-md-row flex-column align-items-center pe-none">
           {/* Toolbar */}
           <div className="ms-1 pe-auto">
-            <ButtonToolbar className="flex-column ">
+            <ButtonToolbar className={!isMobile() ? "flex-column " : ""}>
               <ButtonGroup
                 vertical={!isMobile()}
-                className=" mb-5"
+                className="me-5 mb-5"
                 onFocus={handleOnFocusRefocusor}
               >
+                {/* Normal Buttons */}
                 {buttonList.map((el, i) => {
                   return (
                     <Button variant="secondary" onClick={el.onClick} key={i}>
@@ -259,19 +242,22 @@ const App = () => {
                   );
                 })}
               </ButtonGroup>
+              {/* File Buttons */}
               <ButtonGroup
                 vertical={!isMobile()}
+                className="me-5 mb-5"
                 onFocus={handleOnFocusRefocusor}
               >
+                {/* Export */}
                 <Button className="" onClick={handleExport}>
-                  <i className="bi bi-box-arrow-right" />
+                  <i className="bi bi-box-arrow-right"></i>
                 </Button>
               </ButtonGroup>
             </ButtonToolbar>
           </div>
           {/* Settings */}
           <div className="me-3 pe-auto">
-            <div className="" style={{ width: "300px" }}>
+            <div className="" style={{ width: "350px" }}>
               <Accordion
                 defaultActiveKey={["0", "1", "2"]}
                 alwaysOpen

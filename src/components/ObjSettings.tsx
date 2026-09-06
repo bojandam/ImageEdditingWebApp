@@ -13,7 +13,7 @@ import {
   Rect,
   type TFiller,
 } from "fabric";
-import { Button, Row } from "react-bootstrap";
+import { Button, Form, Row, ToggleButton } from "react-bootstrap";
 import PTextField from "./PTextField";
 import { handleMovingSnap } from "../util/Snapping";
 interface props {
@@ -34,10 +34,13 @@ interface objProps {
   name?: string;
   iWidth?: number; //specifically for images, where you shouldn't play with width and height, but with scale
   iHeight?: number;
+  lockXY?: boolean;
 }
 
 const ObjSettings = ({ canvas, fakeCanvasRect }: props) => {
-  const [selectedObject, setSelectedObject] = useState<any>(null);
+  const [selectedObject, setSelectedObject] = useState<FabricObject | null>(
+    null,
+  );
   const [objProperties, setObjProperties] = useState<objProps>({});
   const [isEmpty, setIsEmpty] = useState<boolean>(true);
   const ctrlDownRef = useRef<boolean>(false);
@@ -98,6 +101,11 @@ const ObjSettings = ({ canvas, fakeCanvasRect }: props) => {
       p.stroke = obj.stroke || "#FFFFFF";
       p.strokeWidth = obj.strokeWidth;
     }
+    if (["image"].includes(obj.type)) {
+      p.iWidth = Math.round(obj.width * obj.scaleX);
+      p.iHeight = Math.round(obj.height * obj.scaleY);
+      p.lockXY = (obj as any).lockXY;
+    }
     p.angle = obj.angle;
     p.name = obj.type === "activeselection" ? "Selection" : obj.type;
 
@@ -136,6 +144,52 @@ const ObjSettings = ({ canvas, fakeCanvasRect }: props) => {
       selectedObject.set({ height: intValue / selectedObject.scaleY });
       selectedObject.setCoords();
       canvas?.renderAll();
+    }
+  };
+  const handleIWidthChange = (e: BaseSyntheticEvent) => {
+    const intValue = parseToInt(e.target?.value);
+
+    if (selectedObject && intValue >= 0) {
+      if (objProperties.lockXY)
+        selectedObject.scaleY *=
+          intValue / selectedObject.width / selectedObject.scaleX;
+
+      selectedObject.scaleX = intValue / selectedObject.width;
+
+      setObjProperties({ ...objProperties, iWidth: intValue });
+      selectedObject.setCoords();
+      canvas?.renderAll();
+    }
+  };
+  const handleIHeightChange = (e: BaseSyntheticEvent) => {
+    const intValue = parseToInt(e.target?.value);
+
+    if (selectedObject && intValue >= 0) {
+      if (objProperties.lockXY)
+        selectedObject.scaleX *=
+          intValue / selectedObject.height / selectedObject.scaleY;
+
+      selectedObject.scaleY = intValue / selectedObject.height;
+
+      setObjProperties({ ...objProperties, iHeight: intValue });
+      selectedObject.setCoords();
+      canvas?.renderAll();
+    }
+  };
+  const handleLockXY = () => {
+    (selectedObject as any).lockXY = !objProperties.lockXY;
+    setObjProperties({
+      ...objProperties,
+      lockXY: !objProperties.lockXY,
+    });
+  };
+  const handleResetWH = () => {
+    if (selectedObject) {
+      selectedObject.scaleX = 1;
+      selectedObject.scaleY = 1;
+      selectedObject.setCoords();
+      handleObjectSelection(selectedObject);
+      canvas?.requestRenderAll();
     }
   };
   const handleTopChange = (e: BaseSyntheticEvent) => {
@@ -211,75 +265,129 @@ const ObjSettings = ({ canvas, fakeCanvasRect }: props) => {
 
   return (
     <>
-      <Row className="flex-wrap ps-2 pe-1" style={{}}>
-        <h6 className="text-capitalize">{objProperties.name}</h6>
-        <PTextField
-          label="W:"
-          value={objProperties.width}
-          formId="widthForm"
-          unit="px"
-          onChange={handleWidthChange}
-        />
-        <PTextField
-          label="H:"
-          value={objProperties.height}
-          formId="widthForm"
-          unit="px"
-          onChange={handleHeightChange}
-        />
-        <PTextField
-          label="X:"
-          value={objProperties.left}
-          formId="leftForm"
-          unit="px"
-          onChange={handleLeftChange}
-        />
-        <PTextField
-          label="Y:"
-          value={objProperties.top}
-          formId="topForm"
-          unit="px"
-          onChange={handleTopChange}
-        />
-        <PTextField
-          label="R:"
-          value={objProperties.radius}
-          formId="radiusForm"
-          unit="px"
-          onChange={handleRadiusChange}
-        />
-        <PTextField
-          label={<i className="bi bi-arrow-clockwise"></i>}
-          value={objProperties.angle}
-          formId="angleForm"
-          unit="°"
-          onChange={handleAngleChange}
-        />
-        <PTextField
-          label="C:"
-          value={objProperties.fill?.toString()}
-          formId="fillForm"
-          type="color"
-          onChange={handleFillChange}
-        />
-        <PTextField
-          label="BC:"
-          value={objProperties.stroke?.toString()}
-          formId="strokeForm"
-          type="color"
-          onChange={handleStrokeChange}
-        />
-        <PTextField
-          label="BW:"
-          value={objProperties.strokeWidth}
-          formId="strokeWidthForm"
-          unit="px"
-          onChange={handleStrokeWidthChange}
-        />
-        {isEmpty && (
-          <p className="fs-6 "> Select an object to modifiy their properties</p>
-        )}
-      </Row>
+      <div className=" ps-2 pe-1">
+        <Row>
+          <h1 className="text-capitalize fs-6 col">{objProperties.name}</h1>
+          {selectedObject?.type === "image" && (
+            <Button
+              className="col-2 p-0  border-0 bi bi-arrow-repeat"
+              size="sm"
+              variant="outline-secondary"
+              onClick={handleResetWH}
+            />
+          )}
+        </Row>
+        <div className="d-flex flex-wrap justify-content-between ">
+          <Row>
+            <PTextField
+              label="Width:"
+              value={objProperties.width}
+              formId="widthForm"
+              unit="px"
+              onChange={handleWidthChange}
+            />
+            <PTextField
+              label="Height:"
+              value={objProperties.height}
+              formId="HeightForm"
+              unit="px"
+              onChange={handleHeightChange}
+            />
+          </Row>
+          <div className="row d-flex justify-content-between">
+            <PTextField
+              label="Width:"
+              value={objProperties.iWidth}
+              formId="iWidthForm"
+              unit="px"
+              onChange={handleIWidthChange}
+              xs={5}
+            />
+            {objProperties.lockXY !== undefined && (
+              <div className="col-2 d-flex flex-column">
+                <br />
+                <ToggleButton
+                  id="lockWHRatio"
+                  value="Lock"
+                  type="checkbox"
+                  checked={objProperties.lockXY}
+                  className="text-center  d-flex flex-column justify-content-center m-auto px-0 "
+                  style={{ width: 25, height: 25 }}
+                  variant="outline-secondary"
+                  onClick={handleLockXY}
+                >
+                  <i className="bi bi-link p-0 m-0" />
+                </ToggleButton>
+              </div>
+            )}
+            <PTextField
+              label="Height:"
+              value={objProperties.iHeight}
+              formId="iHeightForm"
+              unit="px"
+              xs={5}
+              onChange={handleIHeightChange}
+            />
+          </div>
+          <Row className=" d-flex justify-content-between">
+            <PTextField
+              label="X:"
+              value={objProperties.left}
+              formId="leftForm"
+              unit="px"
+              onChange={handleLeftChange}
+            />
+            <PTextField
+              label="Y:"
+              value={objProperties.top}
+              formId="topForm"
+              unit="px"
+              onChange={handleTopChange}
+            />
+            <PTextField
+              label="Radius:"
+              value={objProperties.radius}
+              formId="radiusForm"
+              unit="px"
+              onChange={handleRadiusChange}
+            />
+            <PTextField
+              label={"Rotation:"}
+              value={objProperties.angle}
+              formId="angleForm"
+              unit="°"
+              onChange={handleAngleChange}
+            />
+            <PTextField
+              label="Color:"
+              value={objProperties.fill?.toString()}
+              formId="fillForm"
+              type="color"
+              onChange={handleFillChange}
+            />
+            <PTextField
+              label="Border Color:"
+              value={objProperties.stroke?.toString()}
+              formId="strokeForm"
+              type="color"
+              onChange={handleStrokeChange}
+            />
+            <PTextField
+              label="Border Width:"
+              value={objProperties.strokeWidth}
+              formId="strokeWidthForm"
+              unit="px"
+              onChange={handleStrokeWidthChange}
+            />
+          </Row>
+          {isEmpty && (
+            <p className="fs-6 ">
+              {" "}
+              Select an object to modifiy their properties
+            </p>
+          )}
+        </div>
+      </div>
     </>
   );
 };

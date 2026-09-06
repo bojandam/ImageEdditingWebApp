@@ -5,8 +5,8 @@ import {
   type RefObject,
 } from "react";
 import PTextField from "./PTextField";
-import { FabricObject, Point, Rect, type Canvas } from "fabric";
-import { Col, Row } from "react-bootstrap";
+import { FabricObject, Point, Rect, type Canvas, type TFiller } from "fabric";
+import { Row } from "react-bootstrap";
 import { zoomToFitObject } from "../util/Transformations";
 
 interface Props {
@@ -36,7 +36,7 @@ const CanvasSettings = ({
 }: Props) => {
   const [width, setWidth] = useState<number>();
   const [height, setHeight] = useState<number>();
-
+  const [fill, setFill] = useState<string | TFiller>();
   //dimensions setup
   useEffect(() => {
     if (width === undefined || height === undefined) {
@@ -74,6 +74,7 @@ const CanvasSettings = ({
         stroke: "#FFFFFF",
         strokeWidth: 1,
       });
+      setFill(fakeCanvasRect.current.fill!);
       if (fakeCanvasClip && fakeCanvasClip.current)
         fakeCanvasRect.current.clipPath = fakeCanvasClip.current;
       canvas.add(fakeCanvasRect.current);
@@ -204,6 +205,14 @@ const CanvasSettings = ({
       canvas?.zoomToPoint(canvas.getCenterPoint(), intValue / 100);
     }
   };
+  const handleFakeFillChange = (e: BaseSyntheticEvent) => {
+    const value = e.target.value;
+    if (fakeCanvasRect.current) {
+      setFill(value);
+      fakeCanvasRect.current.set({ fill: value });
+      canvas?.requestRenderAll();
+    }
+  };
   return (
     <Row className="flex-wrap ps-2 pe-1" style={{}}>
       {/* <Col xs={1}>W:</Col>
@@ -211,25 +220,32 @@ const CanvasSettings = ({
       <Col xs={1}>H:</Col>
       <Col>{height}</Col> */}
       <PTextField
-        label="W:"
+        label="Width:"
         value={fakeWidth}
         unit="px"
         formId="fakeWidthForm"
         onChange={handleFakeWidthChange}
       />
       <PTextField
-        label="H:"
+        label="Height:"
         value={fakeHeight}
         unit="px"
         formId="fakeHeightForm"
         onChange={handleFakeHeightChange}
       />
       <PTextField
-        label="Z:"
+        label="Zoom:"
         value={zoom}
         unit="%"
         formId="canZoomForm"
         onChange={handleZoom}
+      />
+      <PTextField
+        label="Color:"
+        value={fill?.toString()}
+        formId="fakeFillForm"
+        onChange={handleFakeFillChange}
+        type="color"
       />
     </Row>
   );
