@@ -1,0 +1,24 @@
+✔ Add Snapping @done (8/31/2026, 7:47:33 PM)
+✔ Add Layers @done (9/2/2026, 4:07:41 PM)
+✔ Add a Zoom out to fit screen @done (9/3/2026, 5:15:28 PM)
+✔ Add Export to PNG @done (9/3/2026, 5:26:04 PM)
+✔ Add Images (paste) @done (9/4/2026, 12:16:06 AM)
+✘ Add Images (import) @cancelled (9/4/2026, 2:15:13 PM)
+✔ Scale images properly @done (9/4/2026, 4:26:49 PM)
+✘ Snapping on Scale @cancelled (9/4/2026, 5:44:46 PM)
+☐ Add Filter options(Brightnes, Contrast, Hue, Temperature ...)
+☐ Add Premade filters
+☐ Croping Images
+☐ Add Saving
+☐ Add more Export options (filetype, scale(aka multiplier))
+☐ Undo/Redo
+☐ Copy, Paste local stuff
+☐ Add Menu
+☐ Add Loading
+
+
+
+Optional:
+☐ Add Layer selection in order (shift selection)
+☐ Add tiny tooltips while moving for snapping (like in blender)
+☐ Add delete button on layer section
