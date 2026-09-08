@@ -17,6 +17,7 @@ import CanvasSettings from "./components/CanvasSettings";
 import Layers from "./components/Layers";
 import { FocusContext } from "./context/FocusTracker";
 import { zoomToFitObject } from "./util/Transformations";
+import FileJSONSaver from "./components/FileJSONSaver";
 const App = () => {
   const [canvas, setCanvas] = useState<Canvas>();
   const canvasRef = useRef(null);
@@ -252,6 +253,7 @@ const App = () => {
                 <Button className="" onClick={handleExport}>
                   <i className="bi bi-box-arrow-right"></i>
                 </Button>
+                <FileJSONSaver canvas={canvas!} />
               </ButtonGroup>
             </ButtonToolbar>
           </div>
