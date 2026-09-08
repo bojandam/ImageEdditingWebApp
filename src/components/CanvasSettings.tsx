@@ -1,4 +1,5 @@
 import {
+  useContext,
   useEffect,
   useState,
   type BaseSyntheticEvent,
@@ -8,35 +9,31 @@ import PTextField from "./PTextField";
 import { FabricObject, Point, Rect, type Canvas, type TFiller } from "fabric";
 import { Row } from "react-bootstrap";
 import { zoomToFitObject } from "../util/Transformations";
+import { propertiesExtender } from "./FileJSONSaver";
+import { FakeCanvasContext } from "../context/FakeCanvasContext";
 
 interface Props {
   canvas: Canvas | undefined;
-  fakeCanvasRect: RefObject<Rect | null>;
-  fakeCanvasClip: RefObject<Rect | null>;
-  fakeCanvasCenter: RefObject<Point | null>;
-  zoom: number | undefined;
-  setZoom: (value: React.SetStateAction<number>) => void;
-  fakeWidth: number;
-  setFakeWidth: (value: React.SetStateAction<number>) => void;
-  fakeHeight: number;
-  setFakeHeight: (value: React.SetStateAction<number>) => void;
 }
 
-const CanvasSettings = ({
-  canvas,
-  fakeCanvasRect,
-  fakeCanvasClip,
-  fakeCanvasCenter,
-  zoom,
-  setZoom,
-  fakeHeight,
-  setFakeHeight,
-  fakeWidth,
-  setFakeWidth,
-}: Props) => {
+const CanvasSettings = ({ canvas }: Props) => {
+  const {
+    fakeCanvasRect,
+    fakeCanvasClip,
+    fakeCanvasCenter,
+    zoom,
+    setZoom,
+    fakeHeight,
+    setFakeHeight,
+    fakeWidth,
+    setFakeWidth,
+    fill,
+    setFill,
+  } = useContext(FakeCanvasContext)!;
+
   const [width, setWidth] = useState<number>();
   const [height, setHeight] = useState<number>();
-  const [fill, setFill] = useState<string | TFiller>();
+
   //dimensions setup
   useEffect(() => {
     if (width === undefined || height === undefined) {
@@ -74,6 +71,7 @@ const CanvasSettings = ({
         stroke: "#FFFFFF",
         strokeWidth: 1,
       });
+      propertiesExtender(fakeCanvasRect.current, ["selectable", "hoverCursor"]);
       setFill(fakeCanvasRect.current.fill!);
       if (fakeCanvasClip && fakeCanvasClip.current)
         fakeCanvasRect.current.clipPath = fakeCanvasClip.current;

@@ -105,6 +105,8 @@ const Layers = ({ canvas }: { canvas: Canvas }) => {
 
   const handleLock = (el: FabricObject) => {
     el.selectable = !el.selectable;
+    el.set({ hoverCursor: el.selectable ? "move" : "default" });
+
     if (!el.selectable && selection.includes(el)) {
       canvas.discardActiveObject();
       canvas.requestRenderAll();

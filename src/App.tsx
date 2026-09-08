@@ -10,14 +10,17 @@ import {
   FabricObject,
   Point,
   Rect,
+  type TFiller,
 } from "fabric";
 import { saveAs } from "file-saver";
 import ObjSettings from "./components/ObjSettings";
 import CanvasSettings from "./components/CanvasSettings";
 import Layers from "./components/Layers";
-import { FocusContext } from "./context/FocusTracker";
 import { zoomToFitObject } from "./util/Transformations";
-import FileJSONSaver from "./components/FileJSONSaver";
+import FileJSONSaver, { propertiesExtender } from "./components/FileJSONSaver";
+
+import { FocusContext } from "./context/FocusTracker";
+import { FakeCanvasContext } from "./context/FakeCanvasContext";
 const App = () => {
   const [canvas, setCanvas] = useState<Canvas>();
   const canvasRef = useRef(null);
@@ -29,6 +32,7 @@ const App = () => {
   //fake Canvas dimensoins
   const [fakeWidth, setFakeWidth] = useState<number>(750);
   const [fakeHeight, setFakeHeight] = useState<number>(750);
+  const [fill, setFill] = useState<string | TFiller>();
 
   //For Mobile Detection
   const [windowWidth, setWindowWidth] = useState<number>(innerWidth);
@@ -100,11 +104,12 @@ const App = () => {
 
   const createObject = (obj: FabricObject) => {
     (obj as any).isObject = true;
-    (obj as any).isVisible = true;
+    // (obj as any).isVisible = true;
     obj.set({
       top: canvas?.getCenterPoint().y,
       left: canvas?.getCenterPoint().x,
     });
+    propertiesExtender(obj, ["isObject", "selectable", "hoverCursor"]);
     if (canvas) canvas.add(obj);
     if (fakeCanvasClip.current) obj.clipPath = fakeCanvasClip.current;
   };
@@ -173,7 +178,6 @@ const App = () => {
         height: x.height * x.scaleY,
       };
     };
-
     canvas
       .toBlob({
         multiplier: 1,
@@ -191,7 +195,6 @@ const App = () => {
     //   else console.error("Blob generation Failed :(");
     // });
   };
-
   const addImage = (file: Blob) => {
     const fileReader = new FileReader();
     fileReader.readAsDataURL(file);
@@ -225,89 +228,92 @@ const App = () => {
         </div>
       </div>
       <FocusContext.Provider value={{ isImportaintFocusRef }}>
-        <div className="d-flex w-100 h-100 position-fixed top-0 start-0 justify-content-between flex-md-row flex-column align-items-center pe-none">
-          {/* Toolbar */}
-          <div className="ms-1 pe-auto">
-            <ButtonToolbar className={!isMobile() ? "flex-column " : ""}>
-              <ButtonGroup
-                vertical={!isMobile()}
-                className="me-5 mb-5"
-                onFocus={handleOnFocusRefocusor}
-              >
-                {/* Normal Buttons */}
-                {buttonList.map((el, i) => {
-                  return (
-                    <Button variant="secondary" onClick={el.onClick} key={i}>
-                      <i className={"bi bi-" + el.icon}></i>
-                    </Button>
-                  );
-                })}
-              </ButtonGroup>
-              {/* File Buttons */}
-              <ButtonGroup
-                vertical={!isMobile()}
-                className="me-5 mb-5"
-                onFocus={handleOnFocusRefocusor}
-              >
-                {/* Export */}
-                <Button className="" onClick={handleExport}>
-                  <i className="bi bi-box-arrow-right"></i>
-                </Button>
-                <FileJSONSaver canvas={canvas!} />
-              </ButtonGroup>
-            </ButtonToolbar>
-          </div>
-          {/* Settings */}
-          <div className="me-3 pe-auto">
-            <div className="" style={{ width: "350px" }}>
-              <Accordion
-                defaultActiveKey={["0", "1", "2"]}
-                alwaysOpen
-                tabIndex={0}
-                onFocus={handleOnFocusRefocusor}
-                style={{ maxHeight: "95vh" }}
-                className="overflow-y-auto "
-              >
-                <Accordion.Item eventKey="0" tabIndex={-1} id="PLs">
-                  <Accordion.Header tabIndex={-1}>
-                    Object Properties
-                  </Accordion.Header>
-                  <Accordion.Body className="">
-                    <ObjSettings
-                      canvas={canvas}
-                      fakeCanvasRect={fakeCanvasRect}
-                    ></ObjSettings>
-                  </Accordion.Body>
-                </Accordion.Item>
-                <Accordion.Item eventKey="1">
-                  <Accordion.Header>Canvas Properties</Accordion.Header>
-                  <Accordion.Body>
-                    <CanvasSettings
-                      canvas={canvas}
-                      fakeCanvasRect={fakeCanvasRect}
-                      fakeCanvasClip={fakeCanvasClip}
-                      fakeCanvasCenter={fakeCanvasCenter}
-                      fakeHeight={fakeHeight}
-                      fakeWidth={fakeWidth}
-                      setFakeHeight={setFakeHeight}
-                      setFakeWidth={setFakeWidth}
-                      zoom={zoom}
-                      setZoom={(zoom) => {
-                        setZoom(zoom);
-                      }}
-                    ></CanvasSettings>
-                  </Accordion.Body>
-                </Accordion.Item>
-                <Accordion.Item eventKey="2" onFocus={handleOnFocusRefocusor}>
-                  <Accordion.Header>Layers</Accordion.Header>
-                  <Accordion.Body>
-                    <Layers canvas={canvas!} />
-                  </Accordion.Body>
-                </Accordion.Item>
-              </Accordion>
+        <FakeCanvasContext.Provider
+          value={{
+            fakeCanvasRect,
+            fakeCanvasClip,
+            fakeCanvasCenter,
+            zoom,
+            setZoom,
+            fakeWidth,
+            setFakeWidth,
+            fakeHeight,
+            setFakeHeight,
+            fill,
+            setFill,
+          }}
+        >
+          <div className="d-flex w-100 h-100 position-fixed top-0 start-0 justify-content-between flex-md-row flex-column align-items-center pe-none">
+            {/* Toolbar */}
+            <div className="ms-1 pe-auto">
+              <ButtonToolbar className={!isMobile() ? "flex-column " : ""}>
+                <ButtonGroup
+                  vertical={!isMobile()}
+                  className="me-5 mb-5"
+                  onFocus={handleOnFocusRefocusor}
+                >
+                  {/* Normal Buttons */}
+                  {buttonList.map((el, i) => {
+                    return (
+                      <Button variant="secondary" onClick={el.onClick} key={i}>
+                        <i className={"bi bi-" + el.icon}></i>
+                      </Button>
+                    );
+                  })}
+                </ButtonGroup>
+                {/* File Buttons */}
+                <ButtonGroup
+                  vertical={!isMobile()}
+                  className="me-5 mb-5"
+                  onFocus={handleOnFocusRefocusor}
+                >
+                  {/* Export */}
+                  <Button className="" onClick={handleExport}>
+                    <i className="bi bi-box-arrow-right"></i>
+                  </Button>
+                  <FileJSONSaver canvas={canvas!} />
+                </ButtonGroup>
+              </ButtonToolbar>
+            </div>
+            {/* Settings */}
+            <div className="me-3 pe-auto">
+              <div className="" style={{ width: "350px" }}>
+                <Accordion
+                  defaultActiveKey={["0", "1", "2"]}
+                  alwaysOpen
+                  tabIndex={0}
+                  onFocus={handleOnFocusRefocusor}
+                  style={{ maxHeight: "95vh" }}
+                  className="overflow-y-auto "
+                >
+                  <Accordion.Item eventKey="0" tabIndex={-1} id="PLs">
+                    <Accordion.Header tabIndex={-1}>
+                      Object Properties
+                    </Accordion.Header>
+                    <Accordion.Body className="">
+                      <ObjSettings
+                        canvas={canvas}
+                        fakeCanvasRect={fakeCanvasRect}
+                      ></ObjSettings>
+                    </Accordion.Body>
+                  </Accordion.Item>
+                  <Accordion.Item eventKey="1">
+                    <Accordion.Header>Canvas Properties</Accordion.Header>
+                    <Accordion.Body>
+                      <CanvasSettings canvas={canvas}></CanvasSettings>
+                    </Accordion.Body>
+                  </Accordion.Item>
+                  <Accordion.Item eventKey="2" onFocus={handleOnFocusRefocusor}>
+                    <Accordion.Header>Layers</Accordion.Header>
+                    <Accordion.Body>
+                      <Layers canvas={canvas!} />
+                    </Accordion.Body>
+                  </Accordion.Item>
+                </Accordion>
+              </div>
             </div>
           </div>
-        </div>
+        </FakeCanvasContext.Provider>
       </FocusContext.Provider>
     </div>
   );
