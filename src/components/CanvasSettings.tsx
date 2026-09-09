@@ -6,10 +6,18 @@ import {
   type RefObject,
 } from "react";
 import PTextField from "./PTextField";
-import { FabricObject, Point, Rect, type Canvas, type TFiller } from "fabric";
+import {
+  FabricObject,
+  Point,
+  Rect,
+  type Canvas,
+  type TFiller,
+  type TPointerEvent,
+  type TPointerEventInfo,
+} from "fabric";
 import { Row } from "react-bootstrap";
 import { zoomToFitObject } from "../util/Transformations";
-import { propertiesExtender } from "./FileJSONSaver";
+import { extendExportedProperties } from "./FileJSONSaver";
 import { FakeCanvasContext } from "../context/FakeCanvasContext";
 
 interface Props {
@@ -76,7 +84,10 @@ const CanvasSettings = ({ canvas }: Props) => {
         stroke: null,
         strokeWidth: 0,
       });
-      propertiesExtender(fakeCanvasRect.current, ["selectable", "hoverCursor"]);
+      extendExportedProperties(fakeCanvasRect.current, [
+        "selectable",
+        "hoverCursor",
+      ]);
       setFill(fakeCanvasRect.current.fill!);
       if (fakeCanvasClip && fakeCanvasClip.current)
         fakeCanvasRect.current.clipPath = fakeCanvasClip.current;
@@ -143,7 +154,8 @@ const CanvasSettings = ({ canvas }: Props) => {
     if (canvas) {
       canvas.on("mouse:down", function (this: any, opt) {
         var evt: any = opt.e;
-        if (evt.altKey === true) {
+        console.log(opt);
+        if (evt.altKey === true || evt.button === 1) {
           (this as any).isDragging = true;
           this.selection = false;
           this.lastPosX = evt.clientX;

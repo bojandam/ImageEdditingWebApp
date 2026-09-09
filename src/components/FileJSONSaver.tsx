@@ -9,7 +9,7 @@ interface Props {
 }
 type ReactInputEvent = React.ChangeEvent<HTMLInputElement, HTMLInputElement>;
 
-export function propertiesExtender(obj: FabricObject, extended: any[]) {
+export function extendExportedProperties(obj: FabricObject, extended: any[]) {
   const originalToObject = obj.toObject;
   obj.toObject = function (propertiesToInclude = []) {
     return originalToObject.call(this, [...propertiesToInclude, ...extended]);
@@ -25,7 +25,7 @@ const FileJSONSaver = ({ canvas }: Props) => {
     setFill,
   } = useContext(FakeCanvasContext)!;
 
-  const handleExportCanvas = () => {
+  const handleDownloadCanvas = () => {
     if (!canvas) return;
     const json = canvas.toJSON();
     const blob = new Blob([JSON.stringify(json)], { type: "application/json" });
@@ -73,7 +73,11 @@ const FileJSONSaver = ({ canvas }: Props) => {
             setFill(newFakeRect.fill!);
             canvas.getObjects().forEach((el) => {
               if (fakeCanvasClip.current) el.clipPath = fakeCanvasClip.current;
-              propertiesExtender(el, ["isObject", "selectable", "hoverCursor"]);
+              extendExportedProperties(el, [
+                "isObject",
+                "selectable",
+                "hoverCursor",
+              ]);
             });
             canvas.renderAll();
           });
@@ -84,8 +88,39 @@ const FileJSONSaver = ({ canvas }: Props) => {
       fileReader.readAsText(file);
     }
   };
+  const handleExport = () => {
+    if (!fakeCanvasRect.current || !canvas) return;
+
+    const oldViewTransform = canvas.viewportTransform;
+    canvas.setViewportTransform([1, 0, 0, 1, 0, 0]);
+
+    const getOptions = (x: FabricObject) => {
+      return {
+        left: x.left - (x.width * x.scaleX) / 2,
+        top: x.top - (x.height * x.scaleY) / 2,
+        width: x.width * x.scaleX,
+        height: x.height * x.scaleY,
+      };
+    };
+    canvas
+      .toBlob({
+        multiplier: 1,
+        quality: 1,
+        format: "png",
+        ...getOptions(fakeCanvasRect.current),
+      })
+      .then((blob) => {
+        if (blob) saveAs(blob, "Canvas.png");
+        else console.error("Blob generation Failed :(");
+      });
+    canvas.setViewportTransform(oldViewTransform);
+  };
+
   return (
     <>
+      <Button className="" onClick={handleExport}>
+        <i className="bi bi-box-arrow-right"></i>
+      </Button>
       <input
         type="file"
         id="importFile"
@@ -95,7 +130,7 @@ const FileJSONSaver = ({ canvas }: Props) => {
       />
       <label className="bi bi-upload btn btn-primary" htmlFor="importFile" />
       {/* </input> */}
-      <Button onClick={handleExportCanvas}>
+      <Button onClick={handleDownloadCanvas}>
         <i className="bi bi-download" />
       </Button>
     </>

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, type BaseSyntheticEvent } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Accordion, Button, ButtonGroup, ButtonToolbar } from "react-bootstrap";
 import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-icons/font/bootstrap-icons.css";
@@ -16,34 +16,37 @@ import { saveAs } from "file-saver";
 import ObjSettings from "./components/ObjSettings";
 import CanvasSettings from "./components/CanvasSettings";
 import Layers from "./components/Layers";
-import { zoomToFitObject } from "./util/Transformations";
-import FileJSONSaver, { propertiesExtender } from "./components/FileJSONSaver";
 
 import { FocusContext } from "./context/FocusTracker";
 import { FakeCanvasContext } from "./context/FakeCanvasContext";
+import FileJSONSaver, {
+  extendExportedProperties,
+} from "./components/FileJSONSaver";
 import { enterCropMode } from "./util/Cropping";
+import { ObjectCreationContext } from "./context/ObjectCreationContext";
+import { zoomToFitObject } from "./util/Transformations";
 
 const App = () => {
+  //Canvas stuff
   const [canvas, setCanvas] = useState<Canvas>();
+  const [windowWidth, setWindowWidth] = useState<number>(innerWidth);
+  const [windowHeight, setWindowHeight] = useState<number>(innerHeight);
+  const [zoom, setZoom] = useState<number>(100);
   const canvasRef = useRef(null);
-
+  //Fake canvas refs
   const fakeCanvasRect = useRef<Rect>(null);
   const fakeCanvasCenter = useRef<Point>(null);
   const fakeCanvasClip = useRef<Rect>(null);
-  const [zoom, setZoom] = useState<number>(100);
   //fake Canvas dimensoins
   const [fakeWidth, setFakeWidth] = useState<number>(750);
   const [fakeHeight, setFakeHeight] = useState<number>(750);
   const [fill, setFill] = useState<string | TFiller>();
 
-  //For Mobile Detection
-  const [windowWidth, setWindowWidth] = useState<number>(innerWidth);
-  const [windowHeight, setWindowHeight] = useState<number>(innerHeight);
-
   //Focus stuff
   const canvasShellRef = useRef<HTMLInputElement>(null);
   const isImportaintFocusRef = useRef<boolean>(false);
 
+  //#region Window Resizing
   useEffect(() => {
     window.addEventListener("resize", handleResize);
     handleResize();
@@ -71,6 +74,12 @@ const App = () => {
       };
     }
   }, []);
+  //#endregion
+
+  //#region Focus & Deletion
+  useEffect(() => {
+    if (canvasShellRef.current) canvasShellRef.current.focus();
+  }, [canvasShellRef]);
 
   const handleCanvasKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
     console.log("Keydown: ", e);
@@ -103,19 +112,43 @@ const App = () => {
     }
     console.log("Done outside");
   };
+  //#endregion
 
+  //#region Object creation & Images
   const createObject = (obj: FabricObject) => {
     (obj as any).isObject = true;
-    // (obj as any).isVisible = true;
     obj.set({
       top: canvas?.getCenterPoint().y,
       left: canvas?.getCenterPoint().x,
     });
 
-    propertiesExtender(obj, ["isObject", "selectable", "hoverCursor"]);
+    extendExportedProperties(obj, ["isObject", "selectable", "hoverCursor"]);
     if (canvas) canvas.add(obj);
     if (fakeCanvasClip.current) obj.clipPath = fakeCanvasClip.current;
   };
+
+  const addImage = (file: Blob) => {
+    const fileReader = new FileReader();
+    fileReader.readAsDataURL(file);
+    fileReader.onload = () => {
+      console.log(fileReader.result);
+      FabricImage.fromURL(fileReader.result!.toString()).then((img) => {
+        (img as any).name = (file as File).name;
+        (img as any).lockXY = true;
+        img.once("mousedblclick", enterCropMode);
+        createObject(img);
+      });
+    };
+  };
+
+  const handlePasteImage = ({ clipboardData }: React.ClipboardEvent) => {
+    if (
+      clipboardData.types.includes("Files") &&
+      clipboardData.files[0].type.startsWith("image/")
+    )
+      addImage(clipboardData.files[0]);
+  };
+  //#endregion
 
   const buttonList = [
     {
@@ -156,62 +189,8 @@ const App = () => {
         }
       },
     },
-
-    // {
-    //   icon: "house-gear-fill",
-    //   onClick: () => {
-    //     if (canvas) {
-    //       canvas.setViewportTransform([1, 0, 0, 1, 0, 0]);
-    //       setZoom(100);
-    //     }
-    //   },
-    // },
   ];
 
-  const handleExport = () => {
-    if (!fakeCanvasRect.current || !canvas) return;
-
-    const oldViewTransform = canvas.viewportTransform;
-    canvas.setViewportTransform([1, 0, 0, 1, 0, 0]);
-
-    const getOptions = (x: FabricObject) => {
-      return {
-        left: x.left - (x.width * x.scaleX) / 2,
-        top: x.top - (x.height * x.scaleY) / 2,
-        width: x.width * x.scaleX,
-        height: x.height * x.scaleY,
-      };
-    };
-    canvas
-      .toBlob({
-        multiplier: 1,
-        quality: 1,
-        format: "png",
-        ...getOptions(fakeCanvasRect.current),
-      })
-      .then((blob) => {
-        if (blob) saveAs(blob, "Canvas.png");
-        else console.error("Blob generation Failed :(");
-      });
-    canvas.setViewportTransform(oldViewTransform);
-    //   canvas.getElement().toBlob((blob) => {
-    //   if (blob) saveAs(blob, "Canvas.png");
-    //   else console.error("Blob generation Failed :(");
-    // });
-  };
-  const addImage = (file: Blob) => {
-    const fileReader = new FileReader();
-    fileReader.readAsDataURL(file);
-    fileReader.onload = () => {
-      console.log(fileReader.result);
-      FabricImage.fromURL(fileReader.result!.toString()).then((img) => {
-        (img as any).name = (file as File).name;
-        (img as any).lockXY = true;
-        img.once("mousedblclick", enterCropMode);
-        createObject(img);
-      });
-    };
-  };
   return (
     <div className="w-100 h-100">
       {/* Canvas */}
@@ -221,13 +200,7 @@ const App = () => {
           onKeyDown={handleCanvasKeyDown}
           tabIndex={0}
           ref={canvasShellRef}
-          onPaste={({ clipboardData }) => {
-            if (
-              clipboardData.types.includes("Files") &&
-              clipboardData.files[0].type.startsWith("image/")
-            )
-              addImage(clipboardData.files[0]);
-          }}
+          onPaste={handlePasteImage}
         >
           <canvas id="canvas1" ref={canvasRef}></canvas>
         </div>
@@ -257,7 +230,7 @@ const App = () => {
                   className="me-5 mb-5"
                   onFocus={handleOnFocusRefocusor}
                 >
-                  {/* Normal Buttons */}
+                  {/* Object Buttons */}
                   {buttonList.map((el, i) => {
                     return (
                       <Button variant="secondary" onClick={el.onClick} key={i}>
@@ -273,9 +246,6 @@ const App = () => {
                   onFocus={handleOnFocusRefocusor}
                 >
                   {/* Export */}
-                  <Button className="" onClick={handleExport}>
-                    <i className="bi bi-box-arrow-right"></i>
-                  </Button>
                   <FileJSONSaver canvas={canvas!} />
                 </ButtonGroup>
               </ButtonToolbar>

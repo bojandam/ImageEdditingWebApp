@@ -5,8 +5,6 @@ import {
   type ObjectEvents,
   type TPointerEventInfo,
 } from "fabric";
-// import { createImageCroppingControls } from "croppingControls";
-// import { cropPanMoveHandler, renderGhostImage } from "./croppingHandlers";
 import { createImageCroppingControls } from "fabric/extensions";
 /**
  * Coordinates the change to image to enter crop mode and returns
