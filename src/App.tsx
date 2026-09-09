@@ -113,7 +113,7 @@ const App = () => {
   };
   //#endregion
 
-  //#region Object creation & Images
+  //#region  Object & Images
   const createObject = (obj: FabricObject) => {
     (obj as any).isObject = true;
     obj.set({
@@ -149,6 +149,7 @@ const App = () => {
   };
   //#endregion
 
+  //#region Object Butons
   const buttonList = [
     {
       icon: "square",
@@ -189,7 +190,8 @@ const App = () => {
       },
     },
   ];
-
+  //#endregion
+  //#region Return
   return (
     <div className="w-100 h-100">
       {/* Canvas */}
@@ -291,6 +293,7 @@ const App = () => {
       </FocusContext.Provider>
     </div>
   );
+  //#endregion
 };
 
 export default App;
