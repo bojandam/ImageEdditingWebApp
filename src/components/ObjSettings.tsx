@@ -16,11 +16,6 @@ import {
 import { Button, Form, Row, ToggleButton } from "react-bootstrap";
 import PTextField from "./PTextField";
 import { handleMovingSnap } from "../util/Snapping";
-import {
-  createImageCroppingControls,
-  createImageResizeControlsWithScaleToCover,
-  enterCropMode,
-} from "fabric/extensions";
 interface props {
   canvas: Canvas | undefined;
   fakeCanvasRect: RefObject<Rect | null>;
@@ -40,7 +35,6 @@ interface objProps {
   iWidth?: number; //specifically for images, where you shouldn't play with width and height, but with scale
   iHeight?: number;
   lockXY?: boolean;
-  cropping?: boolean;
 }
 
 const ObjSettings = ({ canvas, fakeCanvasRect }: props) => {
@@ -111,7 +105,6 @@ const ObjSettings = ({ canvas, fakeCanvasRect }: props) => {
       p.iWidth = Math.round(obj.width * obj.scaleX);
       p.iHeight = Math.round(obj.height * obj.scaleY);
       p.lockXY = (obj as any).lockXY;
-      p.cropping = false;
     }
     p.angle = obj.angle;
     p.name = obj.type === "activeselection" ? "Selection" : obj.type;
@@ -276,14 +269,12 @@ const ObjSettings = ({ canvas, fakeCanvasRect }: props) => {
         <Row>
           <h1 className="text-capitalize fs-6 col">{objProperties.name}</h1>
           {selectedObject?.type === "image" && (
-            <>
-              <Button
-                className="col-2 p-0  border-0 bi bi-arrow-repeat"
-                size="sm"
-                variant="outline-secondary"
-                onClick={handleResetWH}
-              />
-            </>
+            <Button
+              className="col-2 p-0  border-0 bi bi-arrow-repeat"
+              size="sm"
+              variant="outline-secondary"
+              onClick={handleResetWH}
+            />
           )}
         </Row>
         <div className="d-flex flex-wrap justify-content-between ">
