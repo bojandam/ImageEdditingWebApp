@@ -19,8 +19,9 @@ export const enterCropMode = function enterCropMode(
   { target }: TPointerEventInfo,
 ) {
   const fabricImage = target as FabricImage;
-  const { controls, padding } = fabricImage;
+  const { controls, padding, clipPath } = fabricImage;
   fabricImage.padding = 0;
+  fabricImage.clipPath = undefined;
   fabricImage.controls = createImageCroppingControls();
   fabricImage.on("moving", cropPanMoveHandler);
   fabricImage.on("before:render", renderGhostImage);
@@ -29,8 +30,9 @@ export const enterCropMode = function enterCropMode(
   const exitCropMode = () => {
     fabricImage.padding = padding;
     fabricImage.off("moving", cropPanMoveHandler);
-    // fabricImage.off("before:render", renderGhostImage);
+    fabricImage.off("before:render", renderGhostImage);
     fabricImage.controls = controls;
+    fabricImage.clipPath = clipPath;
     fabricImage.setCoords();
     fabricImage.once("mousedblclick", enterCropMode);
     fabricImage.canvas?.requestRenderAll();
