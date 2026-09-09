@@ -45,6 +45,10 @@ const App = () => {
   const canvasShellRef = useRef<HTMLInputElement>(null);
   const isImportaintFocusRef = useRef<boolean>(false);
 
+  //Undo Redo
+  const [history, setHistory] = useState<any[]>([]);
+  const [currentHistoryState, setCurrentHistoryState] = useState<number>(0);
+
   //#region Window Resizing
   useEffect(() => {
     window.addEventListener("resize", handleResize);
@@ -147,6 +151,18 @@ const App = () => {
     )
       addImage(clipboardData.files[0]);
   };
+  //#endregion
+
+  //#region Undo Redo
+  const saveCanvasState = () => {
+    if (!canvas) return;
+    const json = canvas.toJSON();
+    setHistory([json, ...history.slice(currentHistoryState)]);
+    setCurrentHistoryState((i) => {
+      return i > 0 ? i - 1 : 0;
+    });
+  };
+  const loadCanvasState = (i: number) => {};
   //#endregion
 
   //#region Object Butons
