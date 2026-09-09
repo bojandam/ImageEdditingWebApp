@@ -11,6 +11,7 @@ import {
   Point,
   Rect,
   type TFiller,
+  type TPointerEventInfo,
 } from "fabric";
 import { saveAs } from "file-saver";
 import ObjSettings from "./components/ObjSettings";
@@ -21,6 +22,32 @@ import FileJSONSaver, { propertiesExtender } from "./components/FileJSONSaver";
 
 import { FocusContext } from "./context/FocusTracker";
 import { FakeCanvasContext } from "./context/FakeCanvasContext";
+import { createImageCroppingControls } from "fabric/extensions";
+
+const enterCropMode = function enterCropMode(
+  this: (args: TPointerEventInfo) => void,
+  { target }: TPointerEventInfo,
+) {
+  const fabricImage = target as FabricImage;
+  const { controls, padding } = fabricImage;
+  fabricImage.padding = 0;
+  fabricImage.controls = createImageCroppingControls();
+  fabricImage.on("moving", cropPanMoveHandle);
+  // fabricImage.on("before:render", renderGhostImage);
+  fabricImage.setCoords();
+  const exitCropMode = () => {
+    fabricImage.padding = padding;
+    // fabricImage.off("moving", cropPanMoveHandler);
+    // fabricImage.off("before:render", renderGhostImage);
+    fabricImage.controls = controls;
+    fabricImage.setCoords();
+    fabricImage.once("mousedblclick", enterCropMode);
+    fabricImage.canvas?.requestRenderAll();
+  };
+  fabricImage.once("mousedblclick", exitCropMode);
+  fabricImage.canvas?.requestRenderAll();
+};
+
 const App = () => {
   const [canvas, setCanvas] = useState<Canvas>();
   const canvasRef = useRef(null);
@@ -204,6 +231,7 @@ const App = () => {
       FabricImage.fromURL(fileReader.result!.toString()).then((img) => {
         (img as any).name = (file as File).name;
         (img as any).lockXY = true;
+        img.once("mousedblclick", enterCropMode);
         createObject(img);
       });
     };
