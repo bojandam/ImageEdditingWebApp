@@ -126,6 +126,7 @@ const App = () => {
             top: canvas?.getCenterPoint().y,
             left: canvas?.getCenterPoint().x,
             fill: "#FFAAAA",
+            strokeWidth: 0,
           }),
         );
       },
