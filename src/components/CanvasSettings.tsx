@@ -58,11 +58,6 @@ const CanvasSettings = ({ canvas }: Props) => {
           left: canvas.getCenterPoint().x,
           top: canvas.getCenterPoint().y,
           absolutePositioned: true,
-          stroke: null,
-          strokeWidth: 0,
-          // 2. Prevent caching texture pixelation when scaling
-          noScaleCache: false,
-          objectCaching: false,
         });
 
       fakeCanvasRect.current = new Rect({
@@ -73,8 +68,8 @@ const CanvasSettings = ({ canvas }: Props) => {
         fill: "#FFFFFF",
         selectable: false,
         hoverCursor: "default",
-        stroke: null,
-        strokeWidth: 0,
+        stroke: "#FFFFFF",
+        strokeWidth: 1,
       });
       propertiesExtender(fakeCanvasRect.current, ["selectable", "hoverCursor"]);
       setFill(fakeCanvasRect.current.fill!);
@@ -170,7 +165,7 @@ const CanvasSettings = ({ canvas }: Props) => {
         var delta = opt.e.deltaY;
         var zoom = canvas.getZoom();
         zoom *= 0.999 ** delta;
-        if (zoom > 40) zoom = 40;
+        if (zoom > 20) zoom = 20;
         if (zoom < 0.01) zoom = 0.01;
         canvas.zoomToPoint(canvas.getCenterPoint(), zoom);
         setZoom(zoom * 100);
@@ -212,7 +207,7 @@ const CanvasSettings = ({ canvas }: Props) => {
     const value = e.target.value;
     if (fakeCanvasRect.current) {
       setFill(value);
-      fakeCanvasRect.current.set({ fill: value, stroke: value });
+      fakeCanvasRect.current.set({ fill: value });
       canvas?.requestRenderAll();
     }
   };
