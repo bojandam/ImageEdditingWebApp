@@ -21,6 +21,8 @@ import FileJSONSaver, { propertiesExtender } from "./components/FileJSONSaver";
 
 import { FocusContext } from "./context/FocusTracker";
 import { FakeCanvasContext } from "./context/FakeCanvasContext";
+import { enterCropMode } from "./util/Cropping";
+
 const App = () => {
   const [canvas, setCanvas] = useState<Canvas>();
   const canvasRef = useRef(null);
@@ -109,6 +111,7 @@ const App = () => {
       top: canvas?.getCenterPoint().y,
       left: canvas?.getCenterPoint().x,
     });
+
     propertiesExtender(obj, ["isObject", "selectable", "hoverCursor"]);
     if (canvas) canvas.add(obj);
     if (fakeCanvasClip.current) obj.clipPath = fakeCanvasClip.current;
@@ -204,6 +207,7 @@ const App = () => {
       FabricImage.fromURL(fileReader.result!.toString()).then((img) => {
         (img as any).name = (file as File).name;
         (img as any).lockXY = true;
+        img.once("mousedblclick", enterCropMode);
         createObject(img);
       });
     };
