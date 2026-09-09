@@ -23,7 +23,6 @@ import FileJSONSaver, {
   extendExportedProperties,
 } from "./components/FileJSONSaver";
 import { enterCropMode } from "./util/Cropping";
-import { ObjectCreationContext } from "./context/ObjectCreationContext";
 import { zoomToFitObject } from "./util/Transformations";
 
 const App = () => {
