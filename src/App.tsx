@@ -231,9 +231,9 @@ const App = () => {
       if (!canvas)
         return reject(new Error("loadJsonToCanvas: No canvas to load to"));
 
-      canvas.renderOnAddRemove = false;
       // canvas.clear();
       canvas.loadFromJSON(json).then(() => {
+        canvas.renderOnAddRemove = false;
         const imagePromises = canvas
           .getObjects()
           .filter((obj): obj is FabricImage => obj.type === "image")
@@ -251,43 +251,39 @@ const App = () => {
             });
           });
 
-        Promise.all(imagePromises)
-          .then(() => {
-            const newFakeRect = canvas.getObjects()[0] as Rect;
-            console.log("Objects:", canvas.getObjects());
-            fakeCanvasRect.current = newFakeRect;
-            fakeCanvasRect.current.selectable = false;
-            // Reposition
-            if (fakeCanvasClip.current) {
-              const newCenter = canvas.getCenterPoint();
-              const dX = newCenter.x - fakeCanvasRect.current.left;
-              const dY = newCenter.y - fakeCanvasRect.current.top;
-              const translate = (Obj: FabricObject, dx: number, dy: number) => {
-                Obj.set({
-                  left: Obj.left + dx,
-                  top: Obj.top + dy,
-                });
-              };
-              canvas.getObjects().forEach((el) => {
-                translate(el, dX, dY);
-                el.setCoords();
+        Promise.all(imagePromises).then(() => {
+          const newFakeRect = canvas.getObjects()[0] as Rect;
+          console.log("Objects:", canvas.getObjects());
+          fakeCanvasRect.current = newFakeRect;
+          fakeCanvasRect.current.selectable = false;
+          // Reposition
+          if (fakeCanvasClip.current) {
+            const newCenter = canvas.getCenterPoint();
+            const dX = newCenter.x - fakeCanvasRect.current.left;
+            const dY = newCenter.y - fakeCanvasRect.current.top;
+            const translate = (Obj: FabricObject, dx: number, dy: number) => {
+              Obj.set({
+                left: Obj.left + dx,
+                top: Obj.top + dy,
               });
-              canvas.getActiveObject()?.setCoords();
-            }
-            setFakeWidth(newFakeRect.width);
-            setFakeHeight(newFakeRect.height);
-            setFill(newFakeRect.fill!);
+            };
             canvas.getObjects().forEach((el) => {
-              if (fakeCanvasClip.current) el.clipPath = fakeCanvasClip.current;
-              extendExportedProperties(el, extendedObjectProperties);
+              translate(el, dX, dY);
+              el.setCoords();
             });
-            // canvas.renderAll();
-            resolve();
-          })
-          .finally(() => {
-            canvas.renderOnAddRemove = true;
-            canvas.requestRenderAll();
+            canvas.getActiveObject()?.setCoords();
+          }
+          setFakeWidth(newFakeRect.width);
+          setFakeHeight(newFakeRect.height);
+          setFill(newFakeRect.fill!);
+          canvas.getObjects().forEach((el) => {
+            if (fakeCanvasClip.current) el.clipPath = fakeCanvasClip.current;
+            extendExportedProperties(el, extendedObjectProperties);
           });
+          canvas.renderOnAddRemove = true;
+          canvas.requestRenderAll();
+          resolve();
+        });
       });
     });
   };
