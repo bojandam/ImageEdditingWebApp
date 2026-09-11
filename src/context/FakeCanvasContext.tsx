@@ -14,6 +14,7 @@ interface fakeCavasProps {
   fill: string | TFiller | undefined;
   setFill: (value: React.SetStateAction<string | TFiller | undefined>) => void;
   saveCanvasState: () => void;
+  clearHistory: () => void;
 }
 
 export const FakeCanvasContext = createContext<fakeCavasProps | undefined>(

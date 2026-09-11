@@ -3,10 +3,11 @@ import { saveAs } from "file-saver";
 import React, { useContext } from "react";
 import { Button } from "react-bootstrap";
 import { FakeCanvasContext } from "../context/FakeCanvasContext";
+import { FocusContext } from "../context/FocusContext";
 
 interface Props {
   canvas: Canvas;
-  loadJsonToCanvas: (json: JSON) => void;
+  loadJsonToCanvas: (json: JSON) => Promise<void>;
 }
 type ReactInputEvent = React.ChangeEvent<HTMLInputElement, HTMLInputElement>;
 
@@ -18,8 +19,9 @@ export function extendExportedProperties(obj: FabricObject, extended: any[]) {
 }
 
 const FileJSONSaver = ({ canvas, loadJsonToCanvas }: Props) => {
-  const { fakeCanvasRect, saveCanvasState } = useContext(FakeCanvasContext)!;
-
+  const { fakeCanvasRect, saveCanvasState, clearHistory } =
+    useContext(FakeCanvasContext)!;
+  const { focusCanvas } = useContext(FocusContext)!;
   const handleDownloadCanvas = () => {
     if (!canvas) return;
     const json = canvas.toJSON();
@@ -37,9 +39,12 @@ const FileJSONSaver = ({ canvas, loadJsonToCanvas }: Props) => {
         console.log("Inside");
         try {
           const json = JSON.parse(fileReader.result!.toString());
-          loadJsonToCanvas(json); /*.then(() => {
+          loadJsonToCanvas(json).then(() => {
+            clearHistory();
             saveCanvasState();
-          });*/
+            console.log("Saved State");
+            focusCanvas();
+          });
         } catch (error) {
           console.error("Invalid file", error);
         }

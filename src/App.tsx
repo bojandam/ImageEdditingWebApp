@@ -16,7 +16,7 @@ import ObjSettings from "./components/ObjSettings";
 import CanvasSettings from "./components/CanvasSettings";
 import Layers from "./components/Layers";
 
-import { FocusContext } from "./context/FocusTracker";
+import { FocusContext } from "./context/FocusContext";
 import { FakeCanvasContext } from "./context/FakeCanvasContext";
 import FileJSONSaver, {
   extendExportedProperties,
@@ -97,10 +97,12 @@ const App = () => {
   };
   //#endregion
   //#region Focus & Deletion
-  useEffect(() => {
+  const focusCanvas = () => {
     if (canvasShellRef.current) canvasShellRef.current.focus();
+  };
+  useEffect(() => {
+    focusCanvas();
   }, [canvasShellRef]);
-
   const deleteElemetnt = () => {
     if (canvas) {
       const obj = canvas.getActiveObject();
@@ -119,8 +121,8 @@ const App = () => {
 
   const handleOnFocusRefocusor = () => {
     console.log("Outside:");
-    if (isImportaintFocusRef.current === false && canvasShellRef.current) {
-      canvasShellRef.current.focus();
+    if (isImportaintFocusRef.current === false) {
+      focusCanvas();
       console.log("Refocused to canvas");
     }
     console.log("Done outside");
@@ -170,13 +172,20 @@ const App = () => {
   const saveCanvasState = () => {
     if (!canvas) return;
     const json = canvas.toJSON();
-    setHistory((arr) => {
-      return [json, ...arr.slice(currentHistoryStateRef.current)];
-    });
+    const setIt = (i: number) => {
+      setHistory((arr) => {
+        return [json, ...arr.slice(i)];
+      });
+    };
+    setIt(currentHistoryStateRef.current);
+    currentHistoryStateRef.current = 0;
+  };
+  const clearHistory = () => {
+    setHistory([]);
     currentHistoryStateRef.current = 0;
   };
   useEffect(() => {
-    console.log("Hisrory: ", history);
+    console.log("History: ", history, " now: ", currentHistoryStateRef.current);
   }, [history]);
   const loadCanvasState = (i: number) => {
     if (i < 0 || i >= history.length || !canvas) return;
@@ -185,19 +194,28 @@ const App = () => {
       return el.canvasId;
     });
     console.log("selcetd ids:", selectedIds);
-    loadJsonToCanvas(history[i]);
-    currentHistoryStateRef.current = i;
 
-    const left = canvas.getObjects().filter((el: any) => {
-      return selectedIds.includes(el.canvasId);
+    loadJsonToCanvas(history[i]).then(() => {
+      currentHistoryStateRef.current = i;
+
+      const left = canvas.getObjects().filter((el: any) => {
+        return selectedIds.includes(el.canvasId);
+      });
+      console.log("left: ", left);
+      if (left.length === 1) {
+        console.log("IN");
+        canvas.setActiveObject(left[0]);
+      } else if (left.length > 1) {
+        canvas.setActiveObject(new ActiveSelection(left));
+      }
+      console.log(
+        "History: ",
+        history,
+        " now: ",
+        currentHistoryStateRef.current,
+      );
+      canvas.requestRenderAll();
     });
-    console.log(left);
-    if (left.length === 1) {
-      console.log("IN");
-      canvas.setActiveObject(left[0]);
-    } else if (left.length > 1) {
-      canvas.setActiveObject(new ActiveSelection(left));
-    }
   };
 
   const undoCanvas = () => {
@@ -205,59 +223,47 @@ const App = () => {
   };
   const redoCanvas = () => {
     loadCanvasState(currentHistoryStateRef.current - 1);
-  };
-
+  }; //#endregion
+  //#region Load Json
   const loadJsonToCanvas = (json: JSON) => {
     // Promise
+    return new Promise<void>((resolve, reject) => {
+      if (!canvas)
+        return reject(new Error("loadJsonToCanvas: No canvas to load to"));
 
-    if (!canvas) return;
-    const selectedIds = canvas.getActiveObjects().map((el: any) => {
-      return el.canvasId;
-    });
-    console.log("selcetd ids:", selectedIds);
-
-    canvas.clear();
-    canvas.loadFromJSON(json).then(() => {
-      const newFakeRect = canvas.getObjects()[0] as Rect;
-      console.log("Objects:", canvas.getObjects());
-      fakeCanvasRect.current = newFakeRect;
-      fakeCanvasRect.current.selectable = false;
-      // Reposition
-      if (fakeCanvasClip.current) {
-        const newCenter = canvas.getCenterPoint();
-        const dX = newCenter.x - fakeCanvasRect.current.left;
-        const dY = newCenter.y - fakeCanvasRect.current.top;
-        const translate = (Obj: FabricObject, dx: number, dy: number) => {
-          Obj.set({
-            left: Obj.left + dx,
-            top: Obj.top + dy,
+      canvas.clear();
+      canvas.loadFromJSON(json).then(() => {
+        const newFakeRect = canvas.getObjects()[0] as Rect;
+        console.log("Objects:", canvas.getObjects());
+        fakeCanvasRect.current = newFakeRect;
+        fakeCanvasRect.current.selectable = false;
+        // Reposition
+        if (fakeCanvasClip.current) {
+          const newCenter = canvas.getCenterPoint();
+          const dX = newCenter.x - fakeCanvasRect.current.left;
+          const dY = newCenter.y - fakeCanvasRect.current.top;
+          const translate = (Obj: FabricObject, dx: number, dy: number) => {
+            Obj.set({
+              left: Obj.left + dx,
+              top: Obj.top + dy,
+            });
+          };
+          canvas.getObjects().forEach((el) => {
+            translate(el, dX, dY);
+            el.setCoords();
           });
-        };
+          canvas.getActiveObject()?.setCoords();
+        }
+        setFakeWidth(newFakeRect.width);
+        setFakeHeight(newFakeRect.height);
+        setFill(newFakeRect.fill!);
         canvas.getObjects().forEach((el) => {
-          translate(el, dX, dY);
-          el.setCoords();
+          if (fakeCanvasClip.current) el.clipPath = fakeCanvasClip.current;
+          extendExportedProperties(el, extendedObjectProperties);
         });
-        canvas.getActiveObject()?.setCoords();
-      }
-      setFakeWidth(newFakeRect.width);
-      setFakeHeight(newFakeRect.height);
-      setFill(newFakeRect.fill!);
-      canvas.getObjects().forEach((el) => {
-        if (fakeCanvasClip.current) el.clipPath = fakeCanvasClip.current;
-        extendExportedProperties(el, extendedObjectProperties);
+        canvas.renderAll();
+        resolve();
       });
-
-      const left = canvas.getObjects().filter((el: any) => {
-        return selectedIds.includes(el.canvasId);
-      });
-      console.log(left);
-      if (left.length === 1) {
-        console.log("IN");
-        canvas.setActiveObject(left[0]);
-      } else if (left.length > 1) {
-        canvas.setActiveObject(new ActiveSelection(left));
-      }
-      canvas.renderAll();
     });
   };
   //#endregion
@@ -319,7 +325,7 @@ const App = () => {
           <canvas id="canvas1" ref={canvasRef}></canvas>
         </div>
       </div>
-      <FocusContext.Provider value={{ isImportaintFocusRef }}>
+      <FocusContext.Provider value={{ isImportaintFocusRef, focusCanvas }}>
         <FakeCanvasContext.Provider
           value={{
             fakeCanvasRect,
@@ -334,6 +340,7 @@ const App = () => {
             fill,
             setFill,
             saveCanvasState,
+            clearHistory,
           }}
         >
           <div className="d-flex w-100 h-100 position-fixed top-0 start-0 justify-content-between flex-md-row flex-column align-items-center pe-none">
