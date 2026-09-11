@@ -13,6 +13,7 @@ interface fakeCavasProps {
   setFakeHeight: (value: React.SetStateAction<number>) => void;
   fill: string | TFiller | undefined;
   setFill: (value: React.SetStateAction<string | TFiller | undefined>) => void;
+  saveCanvasState: () => void;
 }
 
 export const FakeCanvasContext = createContext<fakeCavasProps | undefined>(

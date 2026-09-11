@@ -12,7 +12,6 @@ import {
   Rect,
   type TFiller,
 } from "fabric";
-import { saveAs } from "file-saver";
 import ObjSettings from "./components/ObjSettings";
 import CanvasSettings from "./components/CanvasSettings";
 import Layers from "./components/Layers";
@@ -45,9 +44,17 @@ const App = () => {
   const canvasShellRef = useRef<HTMLInputElement>(null);
   const isImportaintFocusRef = useRef<boolean>(false);
 
+  //Objects stuff
+  const extendedObjectProperties = [
+    "isObject",
+    "selectable",
+    "hoverCursor",
+    "canvasId",
+  ];
   //Undo Redo
   const [history, setHistory] = useState<any[]>([]);
-  const [currentHistoryState, setCurrentHistoryState] = useState<number>(0);
+  const currentHistoryStateRef = useRef<number>(0);
+  const idTrackerRef = useRef<number>(0);
 
   //#region Window Resizing
   useEffect(() => {
@@ -78,19 +85,22 @@ const App = () => {
     }
   }, []);
   //#endregion
-
+  //#region Keyboard input
+  const handleCanvasKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    console.log("Keydown: ", e.key);
+    if (["Backspace", "Delete"].includes(e.key)) {
+      deleteElemetnt();
+    }
+    if (["z", "Z"].includes(e.key) && e.ctrlKey) {
+      e.shiftKey ? redoCanvas() : undoCanvas();
+    }
+  };
+  //#endregion
   //#region Focus & Deletion
   useEffect(() => {
     if (canvasShellRef.current) canvasShellRef.current.focus();
   }, [canvasShellRef]);
 
-  const handleCanvasKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
-    console.log("Keydown: ", e);
-    if (["Backspace", "Delete"].includes(e.key)) {
-      console.log("Delete");
-      deleteElemetnt();
-    }
-  };
   const deleteElemetnt = () => {
     if (canvas) {
       const obj = canvas.getActiveObject();
@@ -120,14 +130,17 @@ const App = () => {
   //#region  Object & Images
   const createObject = (obj: FabricObject) => {
     (obj as any).isObject = true;
+    (obj as any).canvasId = idTrackerRef.current++;
+
     obj.set({
       top: canvas?.getCenterPoint().y,
       left: canvas?.getCenterPoint().x,
     });
 
-    extendExportedProperties(obj, ["isObject", "selectable", "hoverCursor"]);
+    extendExportedProperties(obj, extendedObjectProperties);
     if (canvas) canvas.add(obj);
     if (fakeCanvasClip.current) obj.clipPath = fakeCanvasClip.current;
+    saveCanvasState();
   };
 
   const addImage = (file: Blob) => {
@@ -157,12 +170,96 @@ const App = () => {
   const saveCanvasState = () => {
     if (!canvas) return;
     const json = canvas.toJSON();
-    setHistory([json, ...history.slice(currentHistoryState)]);
-    setCurrentHistoryState((i) => {
-      return i > 0 ? i - 1 : 0;
+    setHistory((arr) => {
+      return [json, ...arr.slice(currentHistoryStateRef.current)];
+    });
+    currentHistoryStateRef.current = 0;
+  };
+  useEffect(() => {
+    console.log("Hisrory: ", history);
+  }, [history]);
+  const loadCanvasState = (i: number) => {
+    if (i < 0 || i >= history.length || !canvas) return;
+    //to do: keep track of focsed element
+    const selectedIds = canvas.getActiveObjects().map((el: any) => {
+      return el.canvasId;
+    });
+    console.log("selcetd ids:", selectedIds);
+    loadJsonToCanvas(history[i]);
+    currentHistoryStateRef.current = i;
+
+    const left = canvas.getObjects().filter((el: any) => {
+      return selectedIds.includes(el.canvasId);
+    });
+    console.log(left);
+    if (left.length === 1) {
+      console.log("IN");
+      canvas.setActiveObject(left[0]);
+    } else if (left.length > 1) {
+      canvas.setActiveObject(new ActiveSelection(left));
+    }
+  };
+
+  const undoCanvas = () => {
+    loadCanvasState(currentHistoryStateRef.current + 1);
+  };
+  const redoCanvas = () => {
+    loadCanvasState(currentHistoryStateRef.current - 1);
+  };
+
+  const loadJsonToCanvas = (json: JSON) => {
+    // Promise
+
+    if (!canvas) return;
+    const selectedIds = canvas.getActiveObjects().map((el: any) => {
+      return el.canvasId;
+    });
+    console.log("selcetd ids:", selectedIds);
+
+    canvas.clear();
+    canvas.loadFromJSON(json).then(() => {
+      const newFakeRect = canvas.getObjects()[0] as Rect;
+      console.log("Objects:", canvas.getObjects());
+      fakeCanvasRect.current = newFakeRect;
+      fakeCanvasRect.current.selectable = false;
+      // Reposition
+      if (fakeCanvasClip.current) {
+        const newCenter = canvas.getCenterPoint();
+        const dX = newCenter.x - fakeCanvasRect.current.left;
+        const dY = newCenter.y - fakeCanvasRect.current.top;
+        const translate = (Obj: FabricObject, dx: number, dy: number) => {
+          Obj.set({
+            left: Obj.left + dx,
+            top: Obj.top + dy,
+          });
+        };
+        canvas.getObjects().forEach((el) => {
+          translate(el, dX, dY);
+          el.setCoords();
+        });
+        canvas.getActiveObject()?.setCoords();
+      }
+      setFakeWidth(newFakeRect.width);
+      setFakeHeight(newFakeRect.height);
+      setFill(newFakeRect.fill!);
+      canvas.getObjects().forEach((el) => {
+        if (fakeCanvasClip.current) el.clipPath = fakeCanvasClip.current;
+        extendExportedProperties(el, extendedObjectProperties);
+      });
+
+      const left = canvas.getObjects().filter((el: any) => {
+        return selectedIds.includes(el.canvasId);
+      });
+      console.log(left);
+      if (left.length === 1) {
+        console.log("IN");
+        canvas.setActiveObject(left[0]);
+      } else if (left.length > 1) {
+        canvas.setActiveObject(new ActiveSelection(left));
+      }
+      canvas.renderAll();
     });
   };
-  const loadCanvasState = (i: number) => {};
   //#endregion
 
   //#region Object Butons
@@ -236,6 +333,7 @@ const App = () => {
             setFakeHeight,
             fill,
             setFill,
+            saveCanvasState,
           }}
         >
           <div className="d-flex w-100 h-100 position-fixed top-0 start-0 justify-content-between flex-md-row flex-column align-items-center pe-none">
@@ -263,7 +361,10 @@ const App = () => {
                   onFocus={handleOnFocusRefocusor}
                 >
                   {/* Export */}
-                  <FileJSONSaver canvas={canvas!} />
+                  <FileJSONSaver
+                    canvas={canvas!}
+                    loadJsonToCanvas={loadJsonToCanvas}
+                  />
                 </ButtonGroup>
               </ButtonToolbar>
             </div>

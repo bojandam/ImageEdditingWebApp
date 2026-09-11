@@ -1,4 +1,5 @@
 import {
+  useContext,
   useEffect,
   useRef,
   useState,
@@ -16,6 +17,7 @@ import {
 import { Button, Form, Row, ToggleButton } from "react-bootstrap";
 import PTextField from "./PTextField";
 import { handleMovingSnap } from "../util/Snapping";
+import { FakeCanvasContext } from "../context/FakeCanvasContext";
 interface props {
   canvas: Canvas | undefined;
   fakeCanvasRect: RefObject<Rect | null>;
@@ -45,6 +47,7 @@ const ObjSettings = ({ canvas, fakeCanvasRect }: props) => {
   const [isEmpty, setIsEmpty] = useState<boolean>(true);
   const ctrlDownRef = useRef<boolean>(false);
   const guidelinesRef = useRef<Polyline[]>([]);
+  const { saveCanvasState } = useContext(FakeCanvasContext)!;
 
   useEffect(() => {
     if (canvas) {
@@ -72,6 +75,9 @@ const ObjSettings = ({ canvas, fakeCanvasRect }: props) => {
       });
       canvas.on("object:moving", (e) => {
         handleObjectSelection(e.target);
+      });
+      canvas.on("object:modified", () => {
+        saveCanvasState();
       });
     }
   }, [canvas]);

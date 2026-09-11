@@ -6,6 +6,7 @@ interface customObjProps {
   isObject?: boolean;
   isVisible?: boolean;
   originalIndex?: number;
+  canvasId?: number;
 }
 
 const Layers = ({ canvas }: { canvas: Canvas }) => {

@@ -6,6 +6,7 @@ import { FakeCanvasContext } from "../context/FakeCanvasContext";
 
 interface Props {
   canvas: Canvas;
+  loadJsonToCanvas: (json: JSON) => void;
 }
 type ReactInputEvent = React.ChangeEvent<HTMLInputElement, HTMLInputElement>;
 
@@ -16,14 +17,8 @@ export function extendExportedProperties(obj: FabricObject, extended: any[]) {
   };
 }
 
-const FileJSONSaver = ({ canvas }: Props) => {
-  const {
-    fakeCanvasRect,
-    fakeCanvasClip,
-    setFakeWidth,
-    setFakeHeight,
-    setFill,
-  } = useContext(FakeCanvasContext)!;
+const FileJSONSaver = ({ canvas, loadJsonToCanvas }: Props) => {
+  const { fakeCanvasRect, saveCanvasState } = useContext(FakeCanvasContext)!;
 
   const handleDownloadCanvas = () => {
     if (!canvas) return;
@@ -42,45 +37,9 @@ const FileJSONSaver = ({ canvas }: Props) => {
         console.log("Inside");
         try {
           const json = JSON.parse(fileReader.result!.toString());
-          canvas.clear();
-          canvas.loadFromJSON(json).then(() => {
-            const newFakeRect = canvas.getObjects()[0] as Rect;
-            console.log("Objects:", canvas.getObjects());
-            fakeCanvasRect.current = newFakeRect;
-            fakeCanvasRect.current.selectable = false;
-            // Reposition
-            if (fakeCanvasClip.current) {
-              const newCenter = canvas.getCenterPoint();
-              const dX = newCenter.x - fakeCanvasRect.current.left;
-              const dY = newCenter.y - fakeCanvasRect.current.top;
-              const translate = (Obj: FabricObject, dx: number, dy: number) => {
-                Obj.set({
-                  left: Obj.left + dx,
-                  top: Obj.top + dy,
-                });
-              };
-              canvas.getObjects().forEach((el) => {
-                console.log("Before: ", el.left);
-                translate(el, dX, dY);
-                console.log("After: ", el.left);
-                console.log(el);
-                el.setCoords();
-              });
-              canvas.getActiveObject()?.setCoords();
-            }
-            setFakeWidth(newFakeRect.width);
-            setFakeHeight(newFakeRect.height);
-            setFill(newFakeRect.fill!);
-            canvas.getObjects().forEach((el) => {
-              if (fakeCanvasClip.current) el.clipPath = fakeCanvasClip.current;
-              extendExportedProperties(el, [
-                "isObject",
-                "selectable",
-                "hoverCursor",
-              ]);
-            });
-            canvas.renderAll();
-          });
+          loadJsonToCanvas(json); /*.then(() => {
+            saveCanvasState();
+          });*/
         } catch (error) {
           console.error("Invalid file", error);
         }

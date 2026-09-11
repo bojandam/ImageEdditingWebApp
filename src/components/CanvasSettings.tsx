@@ -37,6 +37,7 @@ const CanvasSettings = ({ canvas }: Props) => {
     setFakeWidth,
     fill,
     setFill,
+    saveCanvasState,
   } = useContext(FakeCanvasContext)!;
 
   const [width, setWidth] = useState<number>();
@@ -141,6 +142,11 @@ const CanvasSettings = ({ canvas }: Props) => {
 
       fakeCanvasRect.current.setCoords();
       console.log("Resizing fake canvas: ", fakeCanvasRect.current);
+      if (!(canvas as any).FirstTimeResizing) {
+        (canvas as any).FirstTimeResizing = true;
+        saveCanvasState();
+        console.log("First time save");
+      }
       canvas.renderAll();
     }
   }, [fakeWidth, fakeHeight, canvas]);
