@@ -8,11 +8,13 @@
 ✘ Snapping on Scale @cancelled (9/4/2026, 5:44:46 PM)
 ☐ Add Filter options(Brightnes, Contrast, Hue, Temperature ...)
 ☐ Add Premade filters
-☐ Croping Images
+✔ Croping Images @done (9/9/2026, 9:58:39 PM) 
 ✔ Add Saving @done (9/8/2026, 1:45:22 PM)
 ☐ TEXT (AAAAAARGGHH)
-☐ Add more Export options (filetype, scale(aka multiplier))
 ☐ Undo/Redo
+    ✔ General Undo Redo system @done (9/12/2026, 1:04:06 AM)
+    ☐ Saving states on text field changes (probably by remembering value on and off focus and saving it)
+☐ Add more Export options (filetype, scale(aka multiplier))
 ☐ Copy, Paste local stuff
 ☐ Add Menu
 ☐ Add Loading
