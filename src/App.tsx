@@ -231,41 +231,128 @@ const App = () => {
       if (!canvas)
         return reject(new Error("loadJsonToCanvas: No canvas to load to"));
 
-      canvas.clear();
+      canvas.renderOnAddRemove = false;
+      // canvas.clear();
       canvas.loadFromJSON(json).then(() => {
-        const newFakeRect = canvas.getObjects()[0] as Rect;
-        console.log("Objects:", canvas.getObjects());
-        fakeCanvasRect.current = newFakeRect;
-        fakeCanvasRect.current.selectable = false;
-        // Reposition
-        if (fakeCanvasClip.current) {
-          const newCenter = canvas.getCenterPoint();
-          const dX = newCenter.x - fakeCanvasRect.current.left;
-          const dY = newCenter.y - fakeCanvasRect.current.top;
-          const translate = (Obj: FabricObject, dx: number, dy: number) => {
-            Obj.set({
-              left: Obj.left + dx,
-              top: Obj.top + dy,
+        const imagePromises = canvas
+          .getObjects()
+          .filter((obj): obj is FabricImage => obj.type === "image")
+          .map((img) => {
+            return new Promise<void>((resolve) => {
+              const element = img.getElement();
+              if (element && (element as any).complete) {
+                resolve();
+              } else if (element) {
+                element.onload = () => resolve();
+                element.onerror = () => resolve();
+              } else {
+                resolve();
+              }
             });
-          };
-          canvas.getObjects().forEach((el) => {
-            translate(el, dX, dY);
-            el.setCoords();
           });
-          canvas.getActiveObject()?.setCoords();
-        }
-        setFakeWidth(newFakeRect.width);
-        setFakeHeight(newFakeRect.height);
-        setFill(newFakeRect.fill!);
-        canvas.getObjects().forEach((el) => {
-          if (fakeCanvasClip.current) el.clipPath = fakeCanvasClip.current;
-          extendExportedProperties(el, extendedObjectProperties);
-        });
-        canvas.renderAll();
-        resolve();
+
+        Promise.all(imagePromises)
+          .then(() => {
+            const newFakeRect = canvas.getObjects()[0] as Rect;
+            console.log("Objects:", canvas.getObjects());
+            fakeCanvasRect.current = newFakeRect;
+            fakeCanvasRect.current.selectable = false;
+            // Reposition
+            if (fakeCanvasClip.current) {
+              const newCenter = canvas.getCenterPoint();
+              const dX = newCenter.x - fakeCanvasRect.current.left;
+              const dY = newCenter.y - fakeCanvasRect.current.top;
+              const translate = (Obj: FabricObject, dx: number, dy: number) => {
+                Obj.set({
+                  left: Obj.left + dx,
+                  top: Obj.top + dy,
+                });
+              };
+              canvas.getObjects().forEach((el) => {
+                translate(el, dX, dY);
+                el.setCoords();
+              });
+              canvas.getActiveObject()?.setCoords();
+            }
+            setFakeWidth(newFakeRect.width);
+            setFakeHeight(newFakeRect.height);
+            setFill(newFakeRect.fill!);
+            canvas.getObjects().forEach((el) => {
+              if (fakeCanvasClip.current) el.clipPath = fakeCanvasClip.current;
+              extendExportedProperties(el, extendedObjectProperties);
+            });
+            // canvas.renderAll();
+            resolve();
+          })
+          .finally(() => {
+            canvas.renderOnAddRemove = true;
+            canvas.requestRenderAll();
+          });
       });
     });
   };
+  // const loadJsonToCanvas = async (json: any) => {
+  //   if (!canvas) throw new Error("loadJsonToCanvas: No canvas instance");
+
+  //   // 1. Render off-screen or suppress rendering during load
+  //   canvas.renderOnAddRemove = false;
+
+  //   try {
+  //     // 2. Load JSON (Fabric v6 return promise)
+  //     await canvas.loadFromJSON(json);
+
+  //     // 3. Ensure images are fully loaded before layout calculations
+  //     const objects = canvas.getObjects();
+  //     const imagePromises = objects
+  //       .filter((obj): obj is FabricImage => obj.type === "image")
+  //       .map((img) => {
+  //         return new Promise<void>((resolve) => {
+  //           const element = img.getElement();
+  //           if (element && (element as any).complete) {
+  //             resolve();
+  //           } else if (element) {
+  //             element.onload = () => resolve();
+  //             element.onerror = () => resolve();
+  //           } else {
+  //             resolve();
+  //           }
+  //         });
+  //       });
+
+  //     await Promise.all(imagePromises);
+
+  //     // 4. Perform your fakeCanvas / position transforms here
+  //     const newFakeRect = objects[0] as Rect;
+  //     if (newFakeRect) {
+  //       fakeCanvasRect.current = newFakeRect;
+  //       fakeCanvasRect.current.selectable = false;
+
+  //       if (fakeCanvasClip.current) {
+  //         const newCenter = canvas.getCenterPoint();
+  //         const dX = newCenter.x - fakeCanvasRect.current.left;
+  //         const dY = newCenter.y - fakeCanvasRect.current.top;
+
+  //         objects.forEach((el) => {
+  //           el.set({
+  //             left: el.left + dX,
+  //             top: el.top + dY,
+  //           });
+  //           if (fakeCanvasClip.current) el.clipPath = fakeCanvasClip.current;
+  //           extendExportedProperties(el, extendedObjectProperties);
+  //           el.setCoords();
+  //         });
+  //       }
+
+  //       setFakeWidth(newFakeRect.width);
+  //       setFakeHeight(newFakeRect.height);
+  //       if (newFakeRect.fill) setFill(newFakeRect.fill);
+  //     }
+  //   } finally {
+  //     // 5. Re-enable rendering and execute a single paint step
+  //     canvas.renderOnAddRemove = true;
+  //     canvas.requestRenderAll();
+  //   }
+  // };
   //#endregion
 
   //#region Object Butons
