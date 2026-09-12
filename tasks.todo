@@ -6,22 +6,24 @@
 ✘ Add Images (import) @cancelled (9/4/2026, 2:15:13 PM)
 ✔ Scale images properly @done (9/4/2026, 4:26:49 PM)
 ✘ Snapping on Scale @cancelled (9/4/2026, 5:44:46 PM)
-☐ Add Filter options(Brightnes, Contrast, Hue, Temperature ...)
-☐ Add Premade filters
+✔ Snapping on Rotation @done (9/12/2026, 10:14:02 PM)
 ✔ Croping Images @done (9/9/2026, 9:58:39 PM) 
 ✔ Add Saving @done (9/8/2026, 1:45:22 PM)
-☐ TEXT (AAAAAARGGHH)
-☐ Undo/Redo
+✔ Add Loading @done (9/8/2026, 1:45:22 PM) 
+✔ Undo/Redo @done (9/12/2026, 10:13:49 PM)
     ✔ General Undo Redo system @done (9/12/2026, 1:04:06 AM)
-    ☐ Saving states on text field changes (probably by remembering value on and off focus and saving it)
+    ✔ Saving states on text field changes (probably by remembering value on and off focus and saving it) @done (9/12/2026, 10:13:48 PM)
+    ✔ Copy, Paste local stuff @done (9/12/2026, 11:21:21 PM)
+
+☐ Add Filter options(Brightnes, Contrast, Hue, Temperature ...)
+☐ Add Premade filters
+☐ TEXT (AAAAAARGGHH)
 ☐ Add more Export options (filetype, scale(aka multiplier))
-☐ Copy, Paste local stuff
-☐ Add Menu
-☐ Add Loading
 
 
 
 Optional:
-☐ Add Layer selection in order (shift selection)
+☐ Add Layer selection in order (shift btn selection)
 ☐ Add tiny tooltips while moving for snapping (like in blender)
 ☐ Add delete button on layer section
+☐ Add Menu

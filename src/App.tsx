@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Accordion, Button, ButtonGroup, ButtonToolbar } from "react-bootstrap";
 import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-icons/font/bootstrap-icons.css";
@@ -10,6 +10,8 @@ import {
   FabricObject,
   Point,
   Rect,
+  Textbox,
+  util,
   type TFiller,
 } from "fabric";
 import ObjSettings from "./components/ObjSettings";
@@ -50,6 +52,7 @@ const App = () => {
     "selectable",
     "hoverCursor",
     "canvasId",
+    "name",
   ];
   //Undo Redo
   const [history, setHistory] = useState<any[]>([]);
@@ -115,6 +118,7 @@ const App = () => {
           canvas.remove(obj);
         }
         canvas.discardActiveObject();
+        saveCanvasState();
       }
     }
   };
@@ -130,19 +134,14 @@ const App = () => {
   //#endregion
 
   //#region  Object & Images
-  const createObject = (obj: FabricObject) => {
+  const createObject = (obj: FabricObject, save = true) => {
     (obj as any).isObject = true;
     (obj as any).canvasId = idTrackerRef.current++;
-
-    obj.set({
-      top: canvas?.getCenterPoint().y,
-      left: canvas?.getCenterPoint().x,
-    });
 
     extendExportedProperties(obj, extendedObjectProperties);
     if (canvas) canvas.add(obj);
     if (fakeCanvasClip.current) obj.clipPath = fakeCanvasClip.current;
-    saveCanvasState();
+    if (save) saveCanvasState();
   };
 
   const addImage = (file: Blob) => {
@@ -153,18 +152,63 @@ const App = () => {
       FabricImage.fromURL(fileReader.result!.toString()).then((img) => {
         (img as any).name = (file as File).name;
         (img as any).lockXY = true;
+        img.set({
+          top: canvas?.getCenterPoint().y,
+          left: canvas?.getCenterPoint().x,
+        });
         img.once("mousedblclick", enterCropMode);
         createObject(img);
       });
     };
   };
+  //#endregion
+  //#region Copy Paste
+  const handleCanvasCopy = (e: React.ClipboardEvent) => {
+    if (!canvas || canvas.getActiveObject() === undefined) return;
+    e.preventDefault();
+    const json = canvas.getActiveObject()!.toJSON();
+    console.log("Json:", json);
+    const dataString = JSON.stringify(json);
+    e.clipboardData.setData("fabricObject", dataString);
+    console.log("Copy: ", e.clipboardData);
+  };
 
-  const handlePasteImage = ({ clipboardData }: React.ClipboardEvent) => {
+  const handleCanvasPaste = (e: React.ClipboardEvent) => {
+    const jsonString = e.clipboardData.getData("fabricObject");
+    if (jsonString) {
+      try {
+        const parsedJson = JSON.parse(jsonString);
+        if (parsedJson && parsedJson.type) {
+          e.preventDefault();
+          util.enlivenObjects([parsedJson]).then((objects) => {
+            const pastedObject = objects[0] as FabricObject;
+            const objArr =
+              pastedObject.type === "activeselection"
+                ? (pastedObject as ActiveSelection).getObjects()
+                : [pastedObject];
+
+            objArr.forEach((obj) => {
+              obj.set({
+                left: (obj.left || 0) + 20,
+                top: (obj.top || 0) + 20,
+              });
+              createObject(obj, false);
+            });
+            canvas?.setActiveObject(new ActiveSelection(objArr));
+            canvas?.requestRenderAll();
+            saveCanvasState();
+          });
+          return;
+        }
+      } catch {
+        console.log("Paste failed");
+      }
+    }
     if (
-      clipboardData.types.includes("Files") &&
-      clipboardData.files[0].type.startsWith("image/")
+      e.clipboardData.types.includes("Files") &&
+      e.clipboardData.files[0].type.startsWith("image/")
     )
-      addImage(clipboardData.files[0]);
+      addImage(e.clipboardData.files[0]);
   };
   //#endregion
 
@@ -297,6 +341,17 @@ const App = () => {
       },
     },
     {
+      icon: "fonts",
+      onClick: () => {
+        createObject(
+          new Textbox("Lorem Impsum", {
+            top: canvas?.getCenterPoint().y,
+            left: canvas?.getCenterPoint().x,
+          }),
+        );
+      },
+    },
+    {
       icon: "house-gear",
       onClick: () => {
         if (canvas && fakeCanvasRect.current) {
@@ -317,7 +372,8 @@ const App = () => {
           onKeyDown={handleCanvasKeyDown}
           tabIndex={0}
           ref={canvasShellRef}
-          onPaste={handlePasteImage}
+          onPaste={handleCanvasPaste}
+          onCopy={handleCanvasCopy}
         >
           <canvas id="canvas1" ref={canvasRef}></canvas>
         </div>
