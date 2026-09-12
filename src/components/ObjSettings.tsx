@@ -12,12 +12,15 @@ import {
   FabricObject,
   Polyline,
   Rect,
+  Textbox,
   type TFiller,
 } from "fabric";
 import { Button, Form, Row, ToggleButton } from "react-bootstrap";
 import PTextField from "./PTextField";
 import { handleMovingSnap, handleRotationSnap } from "../util/Snapping";
 import { FakeCanvasContext } from "../context/FakeCanvasContext";
+
+import FontPickerField from "./FontPicker";
 interface props {
   canvas: Canvas | undefined;
   fakeCanvasRect: RefObject<Rect | null>;
@@ -37,6 +40,14 @@ interface objProps {
   iWidth?: number; //specifically for images, where you shouldn't play with width and height, but with scale
   iHeight?: number;
   lockXY?: boolean;
+
+  fontFamily?: string;
+  fontStyle?: string;
+  underline?: boolean;
+  linethrough?: boolean;
+  overline?: boolean;
+  textAlign?: string;
+  fontWeight?: string | number;
 }
 
 const ObjSettings = ({ canvas, fakeCanvasRect }: props) => {
@@ -48,7 +59,7 @@ const ObjSettings = ({ canvas, fakeCanvasRect }: props) => {
   const ctrlDownRef = useRef<boolean>(false);
   const guidelinesRef = useRef<Polyline[]>([]);
   const { saveCanvasState } = useContext(FakeCanvasContext)!;
-
+  //#region Effects
   useEffect(() => {
     if (canvas) {
       canvas.on("selection:created", (e) => {
@@ -89,7 +100,8 @@ const ObjSettings = ({ canvas, fakeCanvasRect }: props) => {
       if (!e.ctrlKey) ctrlDownRef.current = false;
     });
   }, []);
-
+  //#endregion
+  //#region Obj Selection
   const handleObjectSelection = (obj: FabricObject) => {
     let p: objProps = {};
     if (["rect"].includes(obj.type)) {
@@ -112,6 +124,15 @@ const ObjSettings = ({ canvas, fakeCanvasRect }: props) => {
       p.iHeight = Math.round(obj.height * obj.scaleY);
       p.lockXY = (obj as any).lockXY;
     }
+    if (["textbox"].includes(obj.type)) {
+      p.fontFamily = (obj as Textbox).fontFamily;
+      p.fontStyle = (obj as Textbox).fontStyle;
+      p.underline = (obj as Textbox).underline;
+      p.linethrough = (obj as Textbox).linethrough;
+      p.overline = (obj as Textbox).overline;
+      p.textAlign = (obj as Textbox).textAlign;
+      p.fontWeight = (obj as Textbox).fontWeight;
+    }
     p.angle = obj.angle;
     p.name = obj.type === "activeselection" ? "Selection" : obj.type;
 
@@ -125,13 +146,15 @@ const ObjSettings = ({ canvas, fakeCanvasRect }: props) => {
     setIsEmpty(true);
     setSelectedObject(null);
   };
-
+  //#endregion
+  //#region Change Handlers
   const parseToInt = (x: string) => {
     return x === "" ? 0 : parseInt(x.replace(/,/g, ""), 10);
   };
   const parseToFloat = (x: string) => {
     return x === "" ? 0 : parseFloat(x);
   };
+  //#region Width & Height
   const handleWidthChange = (e: BaseSyntheticEvent) => {
     const intValue = parseToInt(e.target?.value);
 
@@ -152,6 +175,8 @@ const ObjSettings = ({ canvas, fakeCanvasRect }: props) => {
       canvas?.renderAll();
     }
   };
+  //#endregion
+  //#region Img Width & Height
   const handleIWidthChange = (e: BaseSyntheticEvent) => {
     const intValue = parseToInt(e.target?.value);
 
@@ -198,6 +223,21 @@ const ObjSettings = ({ canvas, fakeCanvasRect }: props) => {
       canvas?.requestRenderAll();
     }
   };
+  //#endregion
+  //#region Radius
+  const handleRadiusChange = (e: BaseSyntheticEvent) => {
+    const intValue = parseToInt(e.target?.value);
+
+    if (selectedObject && intValue >= 0) {
+      setObjProperties({ ...objProperties, radius: intValue });
+      selectedObject.set({ radius: intValue / selectedObject.scaleX });
+      selectedObject.setCoords();
+      canvas?.renderAll();
+    }
+  };
+  //#endregion
+  //#endregion
+  //#region Top & Left
   const handleTopChange = (e: BaseSyntheticEvent) => {
     const intValue = parseToInt(e.target?.value);
     (selectedObject as any).selektirano = true;
@@ -219,17 +259,8 @@ const ObjSettings = ({ canvas, fakeCanvasRect }: props) => {
       canvas?.renderAll();
     }
   };
-
-  const handleRadiusChange = (e: BaseSyntheticEvent) => {
-    const intValue = parseToInt(e.target?.value);
-
-    if (selectedObject && intValue >= 0) {
-      setObjProperties({ ...objProperties, radius: intValue });
-      selectedObject.set({ radius: intValue / selectedObject.scaleX });
-      selectedObject.setCoords();
-      canvas?.renderAll();
-    }
-  };
+  //#endregion
+  //#region Angle & Fill
   const handleAngleChange = (e: BaseSyntheticEvent) => {
     const intValue = parseToFloat(e.target?.value);
 
@@ -268,7 +299,44 @@ const ObjSettings = ({ canvas, fakeCanvasRect }: props) => {
       canvas?.requestRenderAll();
     }
   };
-
+  //#endregion
+  //#region Text
+  const handleFontChange = (e: BaseSyntheticEvent) => {
+    const prev = objProperties.fontFamily;
+    setObjProperties({ ...objProperties, fontFamily: e.target.value });
+    (selectedObject as Textbox).set({ fontFamily: e.target.value });
+    canvas?.requestRenderAll();
+    if (prev != e.target.value) saveCanvasState();
+  };
+  const handleFontWeightChange = () => {
+    (selectedObject as Textbox)?.set({
+      fontWeight: objProperties.fontWeight == "bold" ? "normal" : "bold",
+    });
+    objProperties.fontWeight =
+      objProperties.fontWeight == "bold" ? "normal" : "bold";
+    canvas?.requestRenderAll();
+    saveCanvasState();
+  };
+  const handleFontDecoChange = () => {
+    (selectedObject as Textbox)?.set({
+      fontStyle: objProperties.fontStyle == "italic" ? "normal" : "italic",
+    });
+    objProperties.fontStyle =
+      objProperties.fontStyle == "italic" ? "normal" : "italic";
+    canvas?.requestRenderAll();
+    saveCanvasState();
+  };
+  const handleUnderlineChange = () => {
+    (selectedObject as Textbox)?.set({
+      underline: !objProperties.underline,
+    });
+    objProperties.underline = !objProperties.underline;
+    canvas?.requestRenderAll();
+    saveCanvasState();
+  };
+  //#endregion
+  //#endregion
+  //#region Return
   return (
     <>
       <div className=" ps-2 pe-1">
@@ -335,6 +403,7 @@ const ObjSettings = ({ canvas, fakeCanvasRect }: props) => {
               onChange={handleIHeightChange}
             />
           </div>
+
           <Row className=" d-flex justify-content-between">
             <PTextField
               label="X:"
@@ -356,6 +425,18 @@ const ObjSettings = ({ canvas, fakeCanvasRect }: props) => {
               formId="radiusForm"
               unit="px"
               onChange={handleRadiusChange}
+            />
+            <FontPickerField
+              formId="FontPicker"
+              label="Font Settings:"
+              fontFamily={objProperties.fontFamily}
+              onChangeFamily={handleFontChange}
+              fontStyle={objProperties.fontStyle}
+              handleFontDecoChange={handleFontDecoChange}
+              underline={objProperties.underline}
+              handleUnderlineChange={handleUnderlineChange}
+              fontWeight={objProperties.fontWeight}
+              handleFontWeightChange={handleFontWeightChange}
             />
             <PTextField
               label={"Rotation:"}
@@ -395,7 +476,7 @@ const ObjSettings = ({ canvas, fakeCanvasRect }: props) => {
         </div>
       </div>
     </>
-  );
+  ); //#endregion
 };
 
 export default ObjSettings;

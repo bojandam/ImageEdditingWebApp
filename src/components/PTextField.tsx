@@ -92,7 +92,7 @@ const PTextField = ({
             className="border-end-0"
             type={type || "number"}
             id={formId}
-            value={value ?? ""}
+            value={value ?? (type == "color" ? "#FFFFFF" : "")}
             onChange={onChange}
             onFocus={handleOnFocus}
             onBlur={handleOnBlur}

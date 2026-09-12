@@ -343,12 +343,12 @@ const App = () => {
     {
       icon: "fonts",
       onClick: () => {
-        createObject(
-          new Textbox("Lorem Impsum", {
-            top: canvas?.getCenterPoint().y,
-            left: canvas?.getCenterPoint().x,
-          }),
-        );
+        const textbox = new Textbox("Lorem Impsum", {
+          top: canvas?.getCenterPoint().y,
+          left: canvas?.getCenterPoint().x,
+        });
+
+        createObject(textbox);
       },
     },
     {
@@ -381,6 +381,7 @@ const App = () => {
       <FocusContext.Provider value={{ isImportaintFocusRef, focusCanvas }}>
         <FakeCanvasContext.Provider
           value={{
+            canvas,
             fakeCanvasRect,
             fakeCanvasClip,
             fakeCanvasCenter,

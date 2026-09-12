@@ -267,6 +267,7 @@ const CanvasSettings = ({ canvas }: Props) => {
         formId="fakeFillForm"
         onChange={handleFakeFillChange}
         type="color"
+        xs={12}
       />
     </Row>
   );

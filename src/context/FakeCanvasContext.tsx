@@ -1,7 +1,8 @@
-import type { Point, Rect, TFiller } from "fabric";
+import type { Canvas, Point, Rect, TFiller } from "fabric";
 import { createContext, type RefObject } from "react";
 
 interface fakeCavasProps {
+  canvas: Canvas | undefined;
   fakeCanvasRect: RefObject<Rect | null>;
   fakeCanvasClip: RefObject<Rect | null>;
   fakeCanvasCenter: RefObject<Point | null>;

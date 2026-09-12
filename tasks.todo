@@ -17,13 +17,13 @@
 
 ☐ Add Filter options(Brightnes, Contrast, Hue, Temperature ...)
 ☐ Add Premade filters
-☐ TEXT (AAAAAARGGHH)
-☐ Add more Export options (filetype, scale(aka multiplier))
+✔ TEXT (AAAAAARGGHH) @done (9/13/2026, 1:46:23 AM)
 
 
 
 Optional:
 ☐ Add Layer selection in order (shift btn selection)
+☐ Mobile support: Undo, Redo, Delete, Copy, Paste buttons
 ☐ Add tiny tooltips while moving for snapping (like in blender)
-☐ Add delete button on layer section
+☐ Add more Export options (filetype, scale(aka multiplier))
 ☐ Add Menu
