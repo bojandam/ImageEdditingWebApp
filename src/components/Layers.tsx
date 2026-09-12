@@ -1,6 +1,7 @@
 import { ActiveSelection, type Canvas, type FabricObject } from "fabric";
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { Button, CardImg, Col, Row, ToggleButton } from "react-bootstrap";
+import { FakeCanvasContext } from "../context/FakeCanvasContext";
 
 interface customObjProps {
   isObject?: boolean;
@@ -13,6 +14,7 @@ const Layers = ({ canvas }: { canvas: Canvas }) => {
   const [objList, setObjList] = useState<(FabricObject & customObjProps)[]>([]);
   const [forceRender, setForceRender] = useState<boolean>(false);
   const [selection, setSelection] = useState<FabricObject[]>([]);
+  const { saveCanvasState } = useContext(FakeCanvasContext)!;
   useEffect(() => {
     if (canvas) {
       canvas.on("object:added", ({ target: obj }) => {
@@ -71,11 +73,11 @@ const Layers = ({ canvas }: { canvas: Canvas }) => {
     }
     let arr = canvas.getObjects();
     const i = (obj as customObjProps).originalIndex!;
-    console.log("In:   i: ", i, "  n: ", arr.length);
+    // console.log("In:   i: ", i, "  n: ", arr.length);
     if (i + offset >= 0 && i + offset < arr.length) {
       let destObject = arr[i + offset];
       if (objIsObject(destObject)) {
-        console.log("Original: ", obj, " Destination: ", destObject);
+        // console.log("Original: ", obj, " Destination: ", destObject);
         arr[i] = destObject;
         (arr[i] as customObjProps).originalIndex = i;
         arr[i + offset] = obj;
@@ -93,15 +95,30 @@ const Layers = ({ canvas }: { canvas: Canvas }) => {
     canvas.backgroundColor = bgColor;
     if (activeObj) canvas.setActiveObject(activeObj);
   };
-  const handleMoveUp = () => {
-    selection.reverse().forEach((el) => {
-      moveLayer(el, +1);
+  const moveAll = (offset: number) => {
+    const prev = canvas.getObjects().map((el) => {
+      return (el as customObjProps).canvasId;
     });
+    selection.forEach((el) => {
+      moveLayer(el, offset);
+    });
+    const after = canvas.getObjects().map((el) => {
+      return (el as customObjProps).canvasId;
+    });
+    if (
+      prev.length !== after.length ||
+      !prev.every((val, index) => val === after[index])
+    ) {
+      // console.log("Saved");
+      saveCanvasState();
+    }
+  };
+
+  const handleMoveUp = () => {
+    moveAll(+1);
   };
   const handleMoveDown = () => {
-    selection.forEach((el) => {
-      moveLayer(el, -1);
-    });
+    moveAll(-1);
   };
 
   const handleLock = (el: FabricObject) => {

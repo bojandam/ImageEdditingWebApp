@@ -254,13 +254,13 @@ const CanvasSettings = ({ canvas }: Props) => {
         formId="fakeHeightForm"
         onChange={handleFakeHeightChange}
       />
-      <PTextField
+      {/* <PTextField
         label="Zoom:"
         value={zoom}
         unit="%"
         formId="canZoomForm"
         onChange={handleZoom}
-      />
+      /> */}
       <PTextField
         label="Color:"
         value={fill?.toString()}
