@@ -16,7 +16,7 @@ import {
 } from "fabric";
 import { Button, Form, Row, ToggleButton } from "react-bootstrap";
 import PTextField from "./PTextField";
-import { handleMovingSnap } from "../util/Snapping";
+import { handleMovingSnap, handleRotationSnap } from "../util/Snapping";
 import { FakeCanvasContext } from "../context/FakeCanvasContext";
 interface props {
   canvas: Canvas | undefined;
@@ -61,7 +61,6 @@ const ObjSettings = ({ canvas, fakeCanvasRect }: props) => {
         setSelectedObject(null);
         clearSettings();
       });
-      canvas.on("object:modified", (e) => handleObjectSelection(e.target));
       canvas.on("object:scaling", (e) => handleObjectSelection(e.target));
       canvas.on("object:moving", (e) => {
         if (ctrlDownRef.current)
@@ -69,14 +68,15 @@ const ObjSettings = ({ canvas, fakeCanvasRect }: props) => {
         else {
           canvas.remove(...guidelinesRef.current);
         }
-      });
-      canvas.on("object:modified", () => {
-        canvas.remove(...guidelinesRef.current);
-      });
-      canvas.on("object:moving", (e) => {
         handleObjectSelection(e.target);
       });
-      canvas.on("object:modified", () => {
+      canvas.on("object:rotating", (e) => {
+        if (ctrlDownRef.current) handleRotationSnap(e.target, canvas);
+        handleObjectSelection(e.target);
+      });
+      canvas.on("object:modified", (e) => {
+        handleObjectSelection(e.target);
+        canvas.remove(...guidelinesRef.current);
         saveCanvasState();
       });
     }

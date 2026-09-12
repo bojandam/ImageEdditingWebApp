@@ -2,12 +2,31 @@ import { Canvas, FabricObject, Polyline, Rect } from "fabric";
 
 import { useState, type RefObject } from "react";
 
-const snapingDistance = 40;
-
 interface GuidePoint {
   point: number;
   vertical: boolean;
   //   name?: string;
+}
+
+export function handleRotationSnap(obj: FabricObject, canvas: Canvas) {
+  if (!obj) return;
+  const snappingDistance = 25; //stepeni
+  const defaultPoints = [8, 12].reduce<number[]>((acc, el) => {
+    // 1/8 2/8 ... 8/8 i 1/6 ... 6/6 od 360 stepeni se snaping points
+    return [
+      ...acc,
+      ...[...Array(el).keys()].map((index) => {
+        return (360 * index) / el;
+      }),
+    ];
+  }, []);
+  const snap = defaultPoints.reduce((min, el) => {
+    return dist(el, obj.angle) < dist(min, obj.angle) ? el : min;
+  });
+  if (dist(snap, obj.angle) <= snappingDistance) {
+    obj.set({ angle: snap });
+    canvas.requestRenderAll();
+  }
 }
 
 export function handleMovingSnap(
@@ -17,151 +36,152 @@ export function handleMovingSnap(
   guidePoints: GuidePoint[],
   guidelinesRef: RefObject<Polyline[] | null>,
 ) {
-  if (canvas && fakeCanvasRect.current && guidelinesRef.current) {
-    const defaultPoints = [
-      {
-        point: fakeCanvasRect.current
-          ? ((a) => {
-              return (-a.width * a.scaleX) / 2;
-            })(fakeCanvasRect.current)
-          : 0,
-        vertical: true,
-      },
-      {
-        point: 0,
-        vertical: true,
-      },
-      {
-        point: fakeCanvasRect.current
-          ? ((a) => {
-              return (a.width * a.scaleX) / 2;
-            })(fakeCanvasRect.current)
-          : 0,
-        vertical: true,
-      },
-      {
-        point: fakeCanvasRect.current
-          ? ((a) => {
-              return (-a.height * a.scaleY) / 2;
-            })(fakeCanvasRect.current)
-          : 0,
-        vertical: false,
-      },
-      {
-        point: 0,
-        vertical: false,
-      },
-      {
-        point: fakeCanvasRect.current
-          ? ((a) => {
-              return (a.height * a.scaleY) / 2;
-            })(fakeCanvasRect.current)
-          : 0,
-        vertical: false,
-      },
-    ];
-    guidePoints = [...guidePoints, ...defaultPoints];
+  if (!canvas || !fakeCanvasRect.current || !guidelinesRef.current) return;
 
-    const left =
-      obj.left - fakeCanvasRect.current.left - (obj.width * obj.scaleX) / 2;
-    const right = left + obj.width * obj.scaleX;
-    const top =
-      obj.top - fakeCanvasRect.current.top - (obj.height * obj.scaleY) / 2;
-    const bottom = top + obj.height * obj.scaleY;
-    const centerX = obj.left - fakeCanvasRect.current.left;
-    const centerY = obj.top - fakeCanvasRect.current.top;
+  const snapingDistance = 40;
+  const defaultPoints = [
+    {
+      point: fakeCanvasRect.current
+        ? ((a) => {
+            return (-a.width * a.scaleX) / 2;
+          })(fakeCanvasRect.current)
+        : 0,
+      vertical: true,
+    },
+    {
+      point: 0,
+      vertical: true,
+    },
+    {
+      point: fakeCanvasRect.current
+        ? ((a) => {
+            return (a.width * a.scaleX) / 2;
+          })(fakeCanvasRect.current)
+        : 0,
+      vertical: true,
+    },
+    {
+      point: fakeCanvasRect.current
+        ? ((a) => {
+            return (-a.height * a.scaleY) / 2;
+          })(fakeCanvasRect.current)
+        : 0,
+      vertical: false,
+    },
+    {
+      point: 0,
+      vertical: false,
+    },
+    {
+      point: fakeCanvasRect.current
+        ? ((a) => {
+            return (a.height * a.scaleY) / 2;
+          })(fakeCanvasRect.current)
+        : 0,
+      vertical: false,
+    },
+  ];
+  guidePoints = [...guidePoints, ...defaultPoints];
 
-    canvas.remove(...guidelinesRef.current);
-    let newGuidelines: Polyline[] = [];
-    let minVDist = snapingDistance + 1;
-    let minVPoint: number;
-    let minVPos: number;
-    let snappedV = false;
-    let minHDist = snapingDistance;
-    let minHPoint: number;
-    let minHPos: number;
-    let snappedH = false;
-    guidePoints.forEach(({ point, vertical }) => {
-      if (vertical && dist(centerX, point) < minVDist) {
-        minVDist = dist(centerX, point);
-        minVPoint = point;
-        minVPos = point;
-        snappedV = true;
-      }
-      if (vertical && dist(left, point) < minVDist) {
-        minVDist = dist(left, point);
-        minVPoint = point;
-        minVPos = point + (centerX - left);
-        snappedV = true;
-      }
-      if (vertical && dist(right, point) < minVDist) {
-        minVDist = dist(right, point);
-        minVPoint = point;
-        minVPos = point - (centerX - left);
-        snappedV = true;
-      }
-      if (!vertical && dist(centerY, point) < minHDist) {
-        minHDist = dist(centerY, point);
-        minHPoint = point;
-        minHPos = point;
-        snappedH = true;
-      }
-      if (!vertical && dist(top, point) < minHDist) {
-        minHDist = dist(top, point);
-        minHPoint = point;
-        minHPos = point + (centerY - top);
-        snappedH = true;
-      }
-      if (!vertical && dist(bottom, point) < minHDist) {
-        minHDist = dist(bottom, point);
-        minHPoint = point;
-        minHPos = point - (centerY - top);
-        snappedH = true;
-      }
-    });
+  const left =
+    obj.left - fakeCanvasRect.current.left - (obj.width * obj.scaleX) / 2;
+  const right = left + obj.width * obj.scaleX;
+  const top =
+    obj.top - fakeCanvasRect.current.top - (obj.height * obj.scaleY) / 2;
+  const bottom = top + obj.height * obj.scaleY;
+  const centerX = obj.left - fakeCanvasRect.current.left;
+  const centerY = obj.top - fakeCanvasRect.current.top;
 
-    if (snappedV) {
-      const newVGuideline = new Polyline(
-        [
-          { x: 0, y: 0 },
-          { x: 0, y: fakeCanvasRect.current!.height + 50 },
-        ],
-        {
-          stroke: "purple",
-          opacity: 0.8,
-          left: minVPoint! + fakeCanvasRect.current.left,
-          top: fakeCanvasRect.current.top,
-          strokeDashArray: [5, 5],
-          strokeWidth: 1,
-        },
-      );
-      newGuidelines.push(newVGuideline);
-      canvas.add(newVGuideline);
-      obj.set({ left: minVPos! + fakeCanvasRect.current.left });
+  canvas.remove(...guidelinesRef.current);
+  let newGuidelines: Polyline[] = [];
+  let minVDist = snapingDistance + 1;
+  let minVPoint: number;
+  let minVPos: number;
+  let snappedV = false;
+  let minHDist = snapingDistance;
+  let minHPoint: number;
+  let minHPos: number;
+  let snappedH = false;
+  guidePoints.forEach(({ point, vertical }) => {
+    if (vertical && dist(centerX, point) < minVDist) {
+      minVDist = dist(centerX, point);
+      minVPoint = point;
+      minVPos = point;
+      snappedV = true;
     }
-    if (snappedH) {
-      const newHGuideline = new Polyline(
-        [
-          { y: 0, x: 0 },
-          { y: 0, x: fakeCanvasRect.current!.width + 50 },
-        ],
-        {
-          stroke: "purple",
-          opacity: 0.8,
-          left: fakeCanvasRect.current.left,
-          top: minHPoint! + fakeCanvasRect.current.top,
-          strokeDashArray: [5, 5],
-          strokeWidth: 1,
-        },
-      );
-      newGuidelines.push(newHGuideline);
-      canvas.add(newHGuideline);
-      obj.set({ top: minHPos! + fakeCanvasRect.current.top });
+    if (vertical && dist(left, point) < minVDist) {
+      minVDist = dist(left, point);
+      minVPoint = point;
+      minVPos = point + (centerX - left);
+      snappedV = true;
     }
-    if (snappedV || snappedH) {
-      guidelinesRef.current = [...newGuidelines];
-      canvas.requestRenderAll();
+    if (vertical && dist(right, point) < minVDist) {
+      minVDist = dist(right, point);
+      minVPoint = point;
+      minVPos = point - (centerX - left);
+      snappedV = true;
     }
+    if (!vertical && dist(centerY, point) < minHDist) {
+      minHDist = dist(centerY, point);
+      minHPoint = point;
+      minHPos = point;
+      snappedH = true;
+    }
+    if (!vertical && dist(top, point) < minHDist) {
+      minHDist = dist(top, point);
+      minHPoint = point;
+      minHPos = point + (centerY - top);
+      snappedH = true;
+    }
+    if (!vertical && dist(bottom, point) < minHDist) {
+      minHDist = dist(bottom, point);
+      minHPoint = point;
+      minHPos = point - (centerY - top);
+      snappedH = true;
+    }
+  });
+
+  if (snappedV) {
+    const newVGuideline = new Polyline(
+      [
+        { x: 0, y: 0 },
+        { x: 0, y: fakeCanvasRect.current!.height + 50 },
+      ],
+      {
+        stroke: "purple",
+        opacity: 0.8,
+        left: minVPoint! + fakeCanvasRect.current.left,
+        top: fakeCanvasRect.current.top,
+        strokeDashArray: [5, 5],
+        strokeWidth: 1,
+      },
+    );
+    newGuidelines.push(newVGuideline);
+    canvas.add(newVGuideline);
+    obj.set({ left: minVPos! + fakeCanvasRect.current.left });
+  }
+  if (snappedH) {
+    const newHGuideline = new Polyline(
+      [
+        { y: 0, x: 0 },
+        { y: 0, x: fakeCanvasRect.current!.width + 50 },
+      ],
+      {
+        stroke: "purple",
+        opacity: 0.8,
+        left: fakeCanvasRect.current.left,
+        top: minHPoint! + fakeCanvasRect.current.top,
+        strokeDashArray: [5, 5],
+        strokeWidth: 1,
+      },
+    );
+    newGuidelines.push(newHGuideline);
+    canvas.add(newHGuideline);
+    obj.set({ top: minHPos! + fakeCanvasRect.current.top });
+  }
+  if (snappedV || snappedH) {
+    guidelinesRef.current = [...newGuidelines];
+    canvas.requestRenderAll();
   }
 }
 
