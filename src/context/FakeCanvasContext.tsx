@@ -1,5 +1,5 @@
-import type { Canvas, Point, Rect, TFiller } from "fabric";
-import { createContext, type RefObject } from "react";
+import type { Canvas, Point, Rect, TFiller } from 'fabric';
+import { createContext, type RefObject } from 'react';
 
 interface fakeCavasProps {
   canvas: Canvas | undefined;

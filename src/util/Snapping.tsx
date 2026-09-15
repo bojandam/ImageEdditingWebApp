@@ -1,6 +1,6 @@
-import { Canvas, FabricObject, Polyline, Rect } from "fabric";
+import { Canvas, FabricObject, Polyline, Rect } from 'fabric';
 
-import { useState, type RefObject } from "react";
+import { useState, type RefObject } from 'react';
 
 interface GuidePoint {
   point: number;
@@ -11,15 +11,18 @@ interface GuidePoint {
 export function handleRotationSnap(obj: FabricObject, canvas: Canvas) {
   if (!obj) return;
   const snappingDistance = 25; //stepeni
-  const defaultPoints = [8, 12].reduce<number[]>((acc, el) => {
-    // 1/8 2/8 ... 8/8 i 1/6 ... 6/6 od 360 stepeni se snaping points
-    return [
-      ...acc,
-      ...[...Array(el).keys()].map((index) => {
-        return (360 * index) / el;
-      }),
-    ];
-  }, []);
+  const defaultPoints = [8, 12].reduce<number[]>(
+    (acc, el) => {
+      // 1/8 2/8 ... 8/8 i 1/6 ... 6/6 od 360 stepeni se snaping points
+      return [
+        ...acc,
+        ...[...Array(el).keys()].map((index) => {
+          return (360 * index) / el;
+        }),
+      ];
+    },
+    [360],
+  );
   const snap = defaultPoints.reduce((min, el) => {
     return dist(el, obj.angle) < dist(min, obj.angle) ? el : min;
   });
@@ -148,7 +151,7 @@ export function handleMovingSnap(
         { x: 0, y: fakeCanvasRect.current!.height + 50 },
       ],
       {
-        stroke: "purple",
+        stroke: 'purple',
         opacity: 0.8,
         left: minVPoint! + fakeCanvasRect.current.left,
         top: fakeCanvasRect.current.top,
@@ -167,7 +170,7 @@ export function handleMovingSnap(
         { y: 0, x: fakeCanvasRect.current!.width + 50 },
       ],
       {
-        stroke: "purple",
+        stroke: 'purple',
         opacity: 0.8,
         left: fakeCanvasRect.current.left,
         top: minHPoint! + fakeCanvasRect.current.top,

@@ -5,7 +5,7 @@ import {
   useState,
   type BaseSyntheticEvent,
   type RefObject,
-} from "react";
+} from 'react';
 import {
   Canvas,
   Circle,
@@ -14,13 +14,13 @@ import {
   Rect,
   Textbox,
   type TFiller,
-} from "fabric";
-import { Button, Form, Row, ToggleButton } from "react-bootstrap";
-import PTextField from "./PTextField";
-import { handleMovingSnap, handleRotationSnap } from "../util/Snapping";
-import { FakeCanvasContext } from "../context/FakeCanvasContext";
+} from 'fabric';
+import { Button, Form, Row, ToggleButton } from 'react-bootstrap';
+import PTextField from './PTextField';
+import { handleMovingSnap, handleRotationSnap } from '../util/Snapping';
+import { FakeCanvasContext } from '../context/FakeCanvasContext';
 
-import FontPickerField from "./FontPicker";
+import FontPickerField from './FontPicker';
 interface props {
   canvas: Canvas | undefined;
   fakeCanvasRect: RefObject<Rect | null>;
@@ -37,10 +37,11 @@ interface objProps {
   stroke?: string | TFiller | null;
   angle?: number;
   name?: string;
+  //img
   iWidth?: number; //specifically for images, where you shouldn't play with width and height, but with scale
   iHeight?: number;
   lockXY?: boolean;
-
+  //text
   fontFamily?: string;
   fontStyle?: string;
   underline?: boolean;
@@ -62,18 +63,18 @@ const ObjSettings = ({ canvas, fakeCanvasRect }: props) => {
   //#region Effects
   useEffect(() => {
     if (canvas) {
-      canvas.on("selection:created", (e) => {
+      canvas.on('selection:created', (e) => {
         handleObjectSelection(e.selected[0]);
       });
-      canvas.on("selection:updated", (e) => {
+      canvas.on('selection:updated', (e) => {
         handleObjectSelection(e.selected[0]);
       });
-      canvas.on("selection:cleared", () => {
+      canvas.on('selection:cleared', () => {
         setSelectedObject(null);
         clearSettings();
       });
-      canvas.on("object:scaling", (e) => handleObjectSelection(e.target));
-      canvas.on("object:moving", (e) => {
+      canvas.on('object:scaling', (e) => handleObjectSelection(e.target));
+      canvas.on('object:moving', (e) => {
         if (ctrlDownRef.current)
           handleMovingSnap(canvas, fakeCanvasRect, e.target, [], guidelinesRef);
         else {
@@ -81,11 +82,11 @@ const ObjSettings = ({ canvas, fakeCanvasRect }: props) => {
         }
         handleObjectSelection(e.target);
       });
-      canvas.on("object:rotating", (e) => {
+      canvas.on('object:rotating', (e) => {
         if (ctrlDownRef.current) handleRotationSnap(e.target, canvas);
         handleObjectSelection(e.target);
       });
-      canvas.on("object:modified", (e) => {
+      canvas.on('object:modified', (e) => {
         handleObjectSelection(e.target);
         canvas.remove(...guidelinesRef.current);
         saveCanvasState();
@@ -93,10 +94,10 @@ const ObjSettings = ({ canvas, fakeCanvasRect }: props) => {
     }
   }, [canvas]);
   useEffect(() => {
-    addEventListener("keydown", (e) => {
+    addEventListener('keydown', (e) => {
       if (e.ctrlKey) ctrlDownRef.current = true;
     });
-    addEventListener("keyup", (e) => {
+    addEventListener('keyup', (e) => {
       if (!e.ctrlKey) ctrlDownRef.current = false;
     });
   }, []);
@@ -104,27 +105,27 @@ const ObjSettings = ({ canvas, fakeCanvasRect }: props) => {
   //#region Obj Selection
   const handleObjectSelection = (obj: FabricObject) => {
     let p: objProps = {};
-    if (["rect"].includes(obj.type)) {
+    if (['rect'].includes(obj.type)) {
       p.width = Math.round(obj.width * obj.scaleX);
       p.height = Math.round(obj.height * obj.scaleY);
-    } else if (obj.type === "circle") {
+    } else if (obj.type === 'circle') {
       p.radius = Math.round((obj as Circle).radius * obj.scaleX);
     }
     if (canvas) {
       p.left = Math.round(obj.left - canvas.getCenterPoint().x);
       p.top = Math.round(obj.top - canvas.getCenterPoint().y);
     }
-    if (!["activeselection", "image"].includes(obj.type)) {
+    if (!['activeselection', 'image'].includes(obj.type)) {
       p.fill = obj.fill;
-      p.stroke = obj.stroke || "#FFFFFF";
+      p.stroke = obj.stroke || '#FFFFFF';
       p.strokeWidth = obj.strokeWidth;
     }
-    if (["image"].includes(obj.type)) {
+    if (['image'].includes(obj.type)) {
       p.iWidth = Math.round(obj.width * obj.scaleX);
       p.iHeight = Math.round(obj.height * obj.scaleY);
       p.lockXY = (obj as any).lockXY;
     }
-    if (["textbox"].includes(obj.type)) {
+    if (['textbox'].includes(obj.type)) {
       p.fontFamily = (obj as Textbox).fontFamily;
       p.fontStyle = (obj as Textbox).fontStyle;
       p.underline = (obj as Textbox).underline;
@@ -134,7 +135,7 @@ const ObjSettings = ({ canvas, fakeCanvasRect }: props) => {
       p.fontWeight = (obj as Textbox).fontWeight;
     }
     p.angle = obj.angle;
-    p.name = obj.type === "activeselection" ? "Selection" : obj.type;
+    p.name = obj.type === 'activeselection' ? 'Selection' : obj.type;
 
     setObjProperties(p);
     setIsEmpty(false);
@@ -149,10 +150,10 @@ const ObjSettings = ({ canvas, fakeCanvasRect }: props) => {
   //#endregion
   //#region Change Handlers
   const parseToInt = (x: string) => {
-    return x === "" ? 0 : parseInt(x.replace(/,/g, ""), 10);
+    return x === '' ? 0 : parseInt(x.replace(/,/g, ''), 10);
   };
   const parseToFloat = (x: string) => {
-    return x === "" ? 0 : parseFloat(x);
+    return x === '' ? 0 : parseFloat(x);
   };
   //#region Width & Height
   const handleWidthChange = (e: BaseSyntheticEvent) => {
@@ -254,6 +255,7 @@ const ObjSettings = ({ canvas, fakeCanvasRect }: props) => {
 
     if (selectedObject && canvas && (intValue >= 0 || intValue < 0)) {
       setObjProperties({ ...objProperties, left: intValue });
+      // console.log("ObjProps:", { ...objProperties });
       selectedObject.set({ left: intValue + canvas.getCenterPoint().x });
       selectedObject.setCoords();
       canvas?.renderAll();
@@ -310,19 +312,19 @@ const ObjSettings = ({ canvas, fakeCanvasRect }: props) => {
   };
   const handleFontWeightChange = () => {
     (selectedObject as Textbox)?.set({
-      fontWeight: objProperties.fontWeight == "bold" ? "normal" : "bold",
+      fontWeight: objProperties.fontWeight == 'bold' ? 'normal' : 'bold',
     });
     objProperties.fontWeight =
-      objProperties.fontWeight == "bold" ? "normal" : "bold";
+      objProperties.fontWeight == 'bold' ? 'normal' : 'bold';
     canvas?.requestRenderAll();
     saveCanvasState();
   };
   const handleFontDecoChange = () => {
     (selectedObject as Textbox)?.set({
-      fontStyle: objProperties.fontStyle == "italic" ? "normal" : "italic",
+      fontStyle: objProperties.fontStyle == 'italic' ? 'normal' : 'italic',
     });
     objProperties.fontStyle =
-      objProperties.fontStyle == "italic" ? "normal" : "italic";
+      objProperties.fontStyle == 'italic' ? 'normal' : 'italic';
     canvas?.requestRenderAll();
     saveCanvasState();
   };
@@ -342,7 +344,7 @@ const ObjSettings = ({ canvas, fakeCanvasRect }: props) => {
       <div className=" ps-2 pe-1">
         <Row>
           <h1 className="text-capitalize fs-6 col">{objProperties.name}</h1>
-          {selectedObject?.type === "image" && (
+          {selectedObject?.type === 'image' && (
             <Button
               className="col-2 p-0  border-0 bi bi-arrow-repeat"
               size="sm"
@@ -439,7 +441,7 @@ const ObjSettings = ({ canvas, fakeCanvasRect }: props) => {
               handleFontWeightChange={handleFontWeightChange}
             />
             <PTextField
-              label={"Rotation:"}
+              label={'Rotation:'}
               value={objProperties.angle}
               formId="angleForm"
               unit="°"
@@ -469,7 +471,7 @@ const ObjSettings = ({ canvas, fakeCanvasRect }: props) => {
           </Row>
           {isEmpty && (
             <p className="fs-6 ">
-              {" "}
+              {' '}
               Select an object to modifiy their properties
             </p>
           )}

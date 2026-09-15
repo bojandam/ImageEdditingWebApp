@@ -4,8 +4,8 @@ import {
   util,
   type ObjectEvents,
   type TPointerEventInfo,
-} from "fabric";
-import { createImageCroppingControls } from "fabric/extensions";
+} from 'fabric';
+import { createImageCroppingControls } from 'fabric/extensions';
 /**
  * Coordinates the change to image to enter crop mode and returns
  * a function to exit crop mode
@@ -21,25 +21,25 @@ export const enterCropMode = function enterCropMode(
   fabricImage.padding = 0;
   fabricImage.clipPath = undefined;
   fabricImage.controls = createImageCroppingControls();
-  fabricImage.on("moving", cropPanMoveHandler);
-  fabricImage.on("before:render", renderGhostImage);
+  fabricImage.on('moving', cropPanMoveHandler);
+  fabricImage.on('before:render', renderGhostImage);
 
   fabricImage.setCoords();
   const exitCropMode = () => {
     fabricImage.padding = padding;
-    fabricImage.off("moving", cropPanMoveHandler);
-    fabricImage.off("before:render", renderGhostImage);
+    fabricImage.off('moving', cropPanMoveHandler);
+    fabricImage.off('before:render', renderGhostImage);
     fabricImage.controls = controls;
     fabricImage.clipPath = clipPath;
     fabricImage.setCoords();
-    fabricImage.once("mousedblclick", enterCropMode);
+    fabricImage.once('mousedblclick', enterCropMode);
     fabricImage.canvas?.requestRenderAll();
   };
-  fabricImage.once("mousedblclick", exitCropMode);
+  fabricImage.once('mousedblclick', exitCropMode);
   fabricImage.canvas?.requestRenderAll();
 };
 
-const cropPanMoveHandler = ({ transform }: ObjectEvents["moving"]) => {
+const cropPanMoveHandler = ({ transform }: ObjectEvents['moving']) => {
   // this makes the image pan too fast.
   const { target, original } = transform;
   const fabricImage = target as FabricImage;

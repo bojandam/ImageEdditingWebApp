@@ -5,10 +5,10 @@ import React, {
   useEffect,
   type ReactNode,
   type BaseSyntheticEvent,
-} from "react";
-import { FocusContext } from "../context/FocusContext";
-import { FakeCanvasContext } from "../context/FakeCanvasContext";
-import { Col, Form, ToggleButton } from "react-bootstrap";
+} from 'react';
+import { FocusContext } from '../context/FocusContext';
+import { FakeCanvasContext } from '../context/FakeCanvasContext';
+import { Col, Form, ToggleButton } from 'react-bootstrap';
 interface props {
   label: string | ReactNode;
   formId: string | undefined;
@@ -38,14 +38,14 @@ const FontPickerField = ({
   const { saveCanvasState } = useContext(FakeCanvasContext)!;
 
   const fonts = [
-    "Arial",
-    "Helvetica",
-    "Times New Roman",
-    "Georgia",
-    "Courier New",
-    "Verdana",
-    "Trebuchet MS",
-    "Impact",
+    'Arial',
+    'Helvetica',
+    'Times New Roman',
+    'Georgia',
+    'Courier New',
+    'Verdana',
+    'Trebuchet MS',
+    'Impact',
   ];
   return (
     <>
@@ -60,7 +60,7 @@ const FontPickerField = ({
           <Form.Select
             id={formId}
             className="me-auto ms-1  my-1"
-            style={{ fontFamily: fontFamily, width: "65%" }}
+            style={{ fontFamily: fontFamily, width: '65%' }}
             onChange={onChangeFamily}
           >
             {fonts.map((el, i) => {
@@ -81,7 +81,7 @@ const FontPickerField = ({
             value="bold"
             variant="outline-secondary"
             className="col-1 bi bi-type-bold p-0 my-auto me-2"
-            checked={fontWeight == "bold"}
+            checked={fontWeight == 'bold'}
             style={{ width: 25, height: 25 }}
             onChange={handleFontWeightChange}
           />
@@ -91,7 +91,7 @@ const FontPickerField = ({
             value="bold"
             variant="outline-secondary"
             className="col-1 bi bi-type-italic p-0 my-auto me-2"
-            checked={fontStyle == "italic"}
+            checked={fontStyle == 'italic'}
             style={{ width: 25, height: 25 }}
             onChange={handleFontDecoChange}
           />

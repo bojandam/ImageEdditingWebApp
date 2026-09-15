@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useRef } from "react";
-import { Accordion, Button, ButtonGroup, ButtonToolbar } from "react-bootstrap";
-import "bootstrap/dist/css/bootstrap.css";
-import "bootstrap-icons/font/bootstrap-icons.css";
+import React, { useState, useEffect, useRef } from 'react';
+import { Accordion, Button, ButtonGroup, ButtonToolbar } from 'react-bootstrap';
+import 'bootstrap/dist/css/bootstrap.css';
+import 'bootstrap-icons/font/bootstrap-icons.css';
 import {
   ActiveSelection,
   Canvas,
@@ -13,18 +13,18 @@ import {
   Textbox,
   util,
   type TFiller,
-} from "fabric";
-import ObjSettings from "./components/ObjSettings";
-import CanvasSettings from "./components/CanvasSettings";
-import Layers from "./components/Layers";
+} from 'fabric';
+import ObjSettings from './components/ObjSettings';
+import CanvasSettings from './components/CanvasSettings';
+import Layers from './components/Layers';
 
-import { FocusContext } from "./context/FocusContext";
-import { FakeCanvasContext } from "./context/FakeCanvasContext";
+import { FocusContext } from './context/FocusContext';
+import { FakeCanvasContext } from './context/FakeCanvasContext';
 import FileJSONSaver, {
   extendExportedProperties,
-} from "./components/FileJSONSaver";
-import { enterCropMode } from "./util/Cropping";
-import { zoomToFitObject } from "./util/Transformations";
+} from './components/FileJSONSaver';
+import { enterCropMode } from './util/Cropping';
+import { zoomToFitObject } from './util/Transformations';
 
 const App = () => {
   //Canvas stuff
@@ -48,11 +48,11 @@ const App = () => {
 
   //Objects stuff
   const extendedObjectProperties = [
-    "isObject",
-    "selectable",
-    "hoverCursor",
-    "canvasId",
-    "name",
+    'isObject',
+    'selectable',
+    'hoverCursor',
+    'canvasId',
+    'name',
   ];
   //Undo Redo
   const [history, setHistory] = useState<any[]>([]);
@@ -61,7 +61,7 @@ const App = () => {
 
   //#region Window Resizing
   useEffect(() => {
-    window.addEventListener("resize", handleResize);
+    window.addEventListener('resize', handleResize);
     handleResize();
   }, []);
   const handleResize = () => {
@@ -77,7 +77,7 @@ const App = () => {
       const innitCanvas = new Canvas(canvasRef.current, {
         width: innerWidth - 15,
         height: innerHeight - 15,
-        backgroundColor: "#F0F8FF",
+        backgroundColor: '#F0F8FF',
       });
 
       innitCanvas.renderAll();
@@ -90,11 +90,11 @@ const App = () => {
   //#endregion
   //#region Keyboard input
   const handleCanvasKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
-    console.log("Keydown: ", e.key);
-    if (["Backspace", "Delete"].includes(e.key)) {
+    console.log('Keydown: ', e.key);
+    if (['Backspace', 'Delete'].includes(e.key)) {
       deleteElemetnt();
     }
-    if (["z", "Z"].includes(e.key) && e.ctrlKey) {
+    if (['z', 'Z'].includes(e.key) && e.ctrlKey) {
       e.shiftKey ? redoCanvas() : undoCanvas();
     }
   };
@@ -110,7 +110,7 @@ const App = () => {
     if (canvas) {
       const obj = canvas.getActiveObject();
       if (obj) {
-        if (obj.type === "activeselection") {
+        if (obj.type === 'activeselection') {
           (obj as ActiveSelection).getObjects().forEach((el) => {
             canvas.remove(el);
           });
@@ -124,12 +124,12 @@ const App = () => {
   };
 
   const handleOnFocusRefocusor = () => {
-    console.log("Outside:");
+    console.log('Outside:');
     if (isImportaintFocusRef.current === false) {
       focusCanvas();
-      console.log("Refocused to canvas");
+      console.log('Refocused to canvas');
     }
-    console.log("Done outside");
+    console.log('Done outside');
   };
   //#endregion
 
@@ -156,7 +156,7 @@ const App = () => {
           top: canvas?.getCenterPoint().y,
           left: canvas?.getCenterPoint().x,
         });
-        img.once("mousedblclick", enterCropMode);
+        img.once('mousedblclick', enterCropMode);
         createObject(img);
       });
     };
@@ -167,14 +167,14 @@ const App = () => {
     if (!canvas || canvas.getActiveObject() === undefined) return;
     e.preventDefault();
     const json = canvas.getActiveObject()!.toJSON();
-    console.log("Json:", json);
+    console.log('Json:', json);
     const dataString = JSON.stringify(json);
-    e.clipboardData.setData("fabricObject", dataString);
-    console.log("Copy: ", e.clipboardData);
+    e.clipboardData.setData('fabricObject', dataString);
+    console.log('Copy: ', e.clipboardData);
   };
 
   const handleCanvasPaste = (e: React.ClipboardEvent) => {
-    const jsonString = e.clipboardData.getData("fabricObject");
+    const jsonString = e.clipboardData.getData('fabricObject');
     if (jsonString) {
       try {
         const parsedJson = JSON.parse(jsonString);
@@ -183,7 +183,7 @@ const App = () => {
           util.enlivenObjects([parsedJson]).then((objects) => {
             const pastedObject = objects[0] as FabricObject;
             const objArr =
-              pastedObject.type === "activeselection"
+              pastedObject.type === 'activeselection'
                 ? (pastedObject as ActiveSelection).getObjects()
                 : [pastedObject];
 
@@ -201,12 +201,12 @@ const App = () => {
           return;
         }
       } catch {
-        console.log("Paste failed");
+        console.log('Paste failed');
       }
     }
     if (
-      e.clipboardData.types.includes("Files") &&
-      e.clipboardData.files[0].type.startsWith("image/")
+      e.clipboardData.types.includes('Files') &&
+      e.clipboardData.files[0].type.startsWith('image/')
     )
       addImage(e.clipboardData.files[0]);
   };
@@ -229,7 +229,7 @@ const App = () => {
     currentHistoryStateRef.current = 0;
   };
   useEffect(() => {
-    console.log("History: ", history, " now: ", currentHistoryStateRef.current);
+    console.log('History: ', history, ' now: ', currentHistoryStateRef.current);
   }, [history]);
   const loadCanvasState = (i: number) => {
     if (i < 0 || i >= history.length || !canvas) return;
@@ -237,7 +237,7 @@ const App = () => {
     const selectedIds = canvas.getActiveObjects().map((el: any) => {
       return el.canvasId;
     });
-    console.log("selcetd ids:", selectedIds);
+    console.log('selcetd ids:', selectedIds);
 
     loadJsonToCanvas(history[i]).then(() => {
       currentHistoryStateRef.current = i;
@@ -245,7 +245,7 @@ const App = () => {
       const left = canvas.getObjects().filter((el: any) => {
         return selectedIds.includes(el.canvasId);
       });
-      console.log("left: ", left);
+      console.log('left: ', left);
       if (left.length >= 1) {
         canvas.setActiveObject(new ActiveSelection(left));
         canvas.requestRenderAll();
@@ -265,14 +265,14 @@ const App = () => {
     // Promise
     return new Promise<void>((resolve, reject) => {
       if (!canvas)
-        return reject(new Error("loadJsonToCanvas: No canvas to load to"));
+        return reject(new Error('loadJsonToCanvas: No canvas to load to'));
 
       // canvas.clear();
       canvas.loadFromJSON(json).then(() => {
         canvas.renderOnAddRemove = false;
 
         const newFakeRect = canvas.getObjects()[0] as Rect;
-        console.log("Objects:", canvas.getObjects());
+        console.log('Objects:', canvas.getObjects());
         fakeCanvasRect.current = newFakeRect;
         fakeCanvasRect.current.selectable = false;
         // Reposition
@@ -312,27 +312,27 @@ const App = () => {
   //#region Object Butons
   const buttonList = [
     {
-      icon: "square",
+      icon: 'square',
       onClick: () => {
-        console.log("Square Clicked");
+        console.log('Square Clicked');
         createObject(
           new Rect({
             width: 150,
             height: 150,
             top: canvas?.getCenterPoint().y,
             left: canvas?.getCenterPoint().x,
-            fill: "#FFAAAA",
+            fill: '#FFAAAA',
             strokeWidth: 0,
           }),
         );
       },
     },
     {
-      icon: "circle",
+      icon: 'circle',
       onClick: () => {
         createObject(
           new Circle({
-            fill: "#AAFFFF",
+            fill: '#AAFFFF',
             radius: 40,
             top: canvas?.getCenterPoint().y,
             left: canvas?.getCenterPoint().x,
@@ -341,9 +341,9 @@ const App = () => {
       },
     },
     {
-      icon: "fonts",
+      icon: 'fonts',
       onClick: () => {
-        const textbox = new Textbox("Lorem Impsum", {
+        const textbox = new Textbox('Lorem Impsum', {
           top: canvas?.getCenterPoint().y,
           left: canvas?.getCenterPoint().x,
         });
@@ -352,7 +352,11 @@ const App = () => {
       },
     },
     {
-      icon: "house-gear",
+      icon: 'fonts',
+      onclick: () => {},
+    },
+    {
+      icon: 'house-gear',
       onClick: () => {
         if (canvas && fakeCanvasRect.current) {
           zoomToFitObject(canvas, fakeCanvasRect.current);
@@ -400,7 +404,7 @@ const App = () => {
           <div className="d-flex w-100 h-100 position-fixed top-0 start-0 justify-content-between flex-md-row flex-column align-items-center pe-none">
             {/* Toolbar */}
             <div className="ms-1 pe-auto">
-              <ButtonToolbar className={!isMobile() ? "flex-column " : ""}>
+              <ButtonToolbar className={!isMobile() ? 'flex-column ' : ''}>
                 <ButtonGroup
                   vertical={!isMobile()}
                   className="me-5 mb-5"
@@ -410,7 +414,7 @@ const App = () => {
                   {buttonList.map((el, i) => {
                     return (
                       <Button variant="secondary" onClick={el.onClick} key={i}>
-                        <i className={"bi bi-" + el.icon}></i>
+                        <i className={'bi bi-' + el.icon}></i>
                       </Button>
                     );
                   })}
@@ -431,13 +435,13 @@ const App = () => {
             </div>
             {/* Settings */}
             <div className="me-3 pe-auto">
-              <div className="" style={{ width: "350px" }}>
+              <div className="" style={{ width: '350px' }}>
                 <Accordion
-                  defaultActiveKey={["0", "1", "2"]}
+                  defaultActiveKey={['0', '1', '2']}
                   alwaysOpen
                   tabIndex={0}
                   onFocus={handleOnFocusRefocusor}
-                  style={{ maxHeight: "95vh" }}
+                  style={{ maxHeight: '95vh' }}
                   className="overflow-y-auto "
                 >
                   <Accordion.Item eventKey="0" tabIndex={-1} id="PLs">

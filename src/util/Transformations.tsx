@@ -1,4 +1,4 @@
-import type { Canvas, FabricObject } from "fabric";
+import type { Canvas, FabricObject } from 'fabric';
 
 export const zoomToFitObject = (canvas: Canvas, targetObject: FabricObject) => {
   const boundingRect = targetObject.getBoundingRect();
