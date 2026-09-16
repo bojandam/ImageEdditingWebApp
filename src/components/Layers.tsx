@@ -136,35 +136,39 @@ const Layers = ({ canvas }: { canvas: Canvas }) => {
 
   return (
     <div>
-      <Row>
-        <Button
-          className="text-center col-2 border-0"
-          variant="outline-secondary"
-          onClick={() => {
-            handleMoveUp();
-          }}
-        >
-          <i className="bi bi-arrow-up"></i>
-        </Button>
-        <Button
-          className="text-center col-2 border-0"
-          variant="outline-secondary"
-          onClick={() => {
-            handleMoveDown();
-          }}
-        >
-          <i className="bi bi-arrow-down"></i>
-        </Button>
-      </Row>
+      {objList.length ? (
+        <Row>
+          <Button
+            className="text-center col-2 border-0"
+            variant="outline-secondary"
+            onClick={() => {
+              handleMoveUp();
+            }}
+          >
+            <i className="bi bi-arrow-up"></i>
+          </Button>
+          <Button
+            className="text-center col-2 border-0"
+            variant="outline-secondary"
+            onClick={() => {
+              handleMoveDown();
+            }}
+          >
+            <i className="bi bi-arrow-down"></i>
+          </Button>
+        </Row>
+      ) : (
+        <div>Add an element to view layers</div>
+      )}
       <div
-      // className="overflow-y-scroll h-auto overflow-x-hidden "
-      // style={{ overflow: "auto", maxHeight: "20vh" }}
+        className="overflow-y-auto h-auto overflow-x-hidden "
+        style={{ overflow: 'auto', maxHeight: '20vh' }}
       >
         {objList.map((el, i) => {
           return (
-            <Row key={i}>
+            <Row key={i} className="px-2 mx-auto">
               <ToggleButton
-                className="text-start col border-0 text-black"
+                className="text-start col border-0 text-black  ps-2"
                 variant="outline-light"
                 type="radio"
                 key={i}

@@ -8,6 +8,7 @@ import {
   Circle,
   FabricImage,
   FabricObject,
+  filters,
   Point,
   Rect,
   Textbox,
@@ -25,6 +26,7 @@ import FileJSONSaver, {
 } from './components/FileJSONSaver';
 import { enterCropMode } from './util/Cropping';
 import { zoomToFitObject } from './util/Transformations';
+import FiltersList from './components/FiltersList';
 
 const App = () => {
   //Canvas stuff
@@ -45,7 +47,10 @@ const App = () => {
   //Focus stuff
   const canvasShellRef = useRef<HTMLInputElement>(null);
   const isImportaintFocusRef = useRef<boolean>(false);
-
+  //Selected object
+  const [selectedObject, setSelectedObject] = useState<FabricObject | null>(
+    null,
+  );
   //Objects stuff
   const extendedObjectProperties = [
     'isObject',
@@ -158,6 +163,7 @@ const App = () => {
         });
         img.once('mousedblclick', enterCropMode);
         createObject(img);
+        canvas?.setActiveObject(img);
       });
     };
   };
@@ -352,8 +358,51 @@ const App = () => {
       },
     },
     {
-      icon: 'fonts',
-      onclick: () => {},
+      icon: 'droplet-half',
+      onClick: () => {
+        if (!canvas) return;
+        const img = canvas.getActiveObject() as FabricImage;
+        if (img.type != 'image') return console.log('Not an img!');
+        const filter = new filters.RemoveColor({
+          color: '#000000',
+          distance: 0.15,
+        });
+        img.filters.push(filter);
+        img.applyFilters();
+        filter.color = '#ddc7ac';
+        img.applyFilters();
+
+        canvas.requestRenderAll();
+        saveCanvasState();
+      },
+    },
+    {
+      icon: 'droplet-half',
+      onClick: () => {
+        if (!canvas) return;
+        const img = canvas.getActiveObject() as FabricImage;
+        if (img.type != 'image') return console.log('Not an img!');
+        const filter = new filters.Blur({
+          color: '#000000',
+          blur: 0.15,
+        });
+        img.filters.push(filter);
+        img.applyFilters();
+
+        canvas.requestRenderAll();
+        saveCanvasState();
+      },
+    },
+    {
+      icon: 'droplet',
+      onClick: () => {
+        if (!canvas) return;
+        const img = canvas.getActiveObject() as FabricImage;
+        if (img.type != 'image') return console.log('Not an img!');
+        img.filters.length = 0;
+        img.applyFilters();
+        canvas.requestRenderAll();
+      },
     },
     {
       icon: 'house-gear',
@@ -403,11 +452,11 @@ const App = () => {
         >
           <div className="d-flex w-100 h-100 position-fixed top-0 start-0 justify-content-between flex-md-row flex-column align-items-center pe-none">
             {/* Toolbar */}
-            <div className="ms-1 pe-auto">
+            <div className="ms-1 mt-1 pe-auto">
               <ButtonToolbar className={!isMobile() ? 'flex-column ' : ''}>
                 <ButtonGroup
                   vertical={!isMobile()}
-                  className="me-5 mb-5"
+                  className={isMobile() ? 'me-5' : ' mb-5'}
                   onFocus={handleOnFocusRefocusor}
                 >
                   {/* Object Buttons */}
@@ -422,7 +471,7 @@ const App = () => {
                 {/* File Buttons */}
                 <ButtonGroup
                   vertical={!isMobile()}
-                  className="me-5 mb-5"
+                  className={isMobile() ? 'me-5' : ' mb-5'}
                   onFocus={handleOnFocusRefocusor}
                 >
                   {/* Export */}
@@ -437,7 +486,7 @@ const App = () => {
             <div className="me-3 pe-auto">
               <div className="" style={{ width: '350px' }}>
                 <Accordion
-                  defaultActiveKey={['0', '1', '2']}
+                  defaultActiveKey={['0', '1', '2', '3']}
                   alwaysOpen
                   tabIndex={0}
                   onFocus={handleOnFocusRefocusor}
@@ -452,6 +501,8 @@ const App = () => {
                       <ObjSettings
                         canvas={canvas}
                         fakeCanvasRect={fakeCanvasRect}
+                        selectedObject={selectedObject}
+                        setSelectedObject={setSelectedObject}
                       ></ObjSettings>
                     </Accordion.Body>
                   </Accordion.Item>
@@ -465,6 +516,15 @@ const App = () => {
                     <Accordion.Header>Layers</Accordion.Header>
                     <Accordion.Body>
                       <Layers canvas={canvas!} />
+                    </Accordion.Body>
+                  </Accordion.Item>
+                  <Accordion.Item eventKey="3" onFocus={handleOnFocusRefocusor}>
+                    <Accordion.Header>Filters</Accordion.Header>
+                    <Accordion.Body>
+                      <FiltersList
+                        canvas={canvas!}
+                        selectedObject={selectedObject as FabricImage}
+                      />
                     </Accordion.Body>
                   </Accordion.Item>
                 </Accordion>

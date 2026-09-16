@@ -1,4 +1,4 @@
-import {
+import React, {
   useContext,
   useEffect,
   useRef,
@@ -24,6 +24,8 @@ import FontPickerField from './FontPicker';
 interface props {
   canvas: Canvas | undefined;
   fakeCanvasRect: RefObject<Rect | null>;
+  selectedObject: FabricObject | null;
+  setSelectedObject: React.Dispatch<React.SetStateAction<FabricObject | null>>;
 }
 
 interface objProps {
@@ -51,10 +53,12 @@ interface objProps {
   fontWeight?: string | number;
 }
 
-const ObjSettings = ({ canvas, fakeCanvasRect }: props) => {
-  const [selectedObject, setSelectedObject] = useState<FabricObject | null>(
-    null,
-  );
+const ObjSettings = ({
+  canvas,
+  fakeCanvasRect,
+  selectedObject,
+  setSelectedObject,
+}: props) => {
   const [objProperties, setObjProperties] = useState<objProps>({});
   const [isEmpty, setIsEmpty] = useState<boolean>(true);
   const ctrlDownRef = useRef<boolean>(false);
