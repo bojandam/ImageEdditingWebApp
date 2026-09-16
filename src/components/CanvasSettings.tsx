@@ -38,6 +38,8 @@ const CanvasSettings = ({ canvas }: Props) => {
     fill,
     setFill,
     saveCanvasState,
+    exportQuality,
+    setExportQuality,
   } = useContext(FakeCanvasContext)!;
 
   const [width, setWidth] = useState<number>();
@@ -219,14 +221,13 @@ const CanvasSettings = ({ canvas }: Props) => {
       setFakeHeight(intValue);
     }
   };
-
-  const handleZoom = (e: BaseSyntheticEvent) => {
+  const handleExportQualityChange = (e: BaseSyntheticEvent) => {
     const intValue = parseToInt(e.target?.value);
-    if (intValue > 0 && fakeCanvasRect && fakeCanvasRect.current) {
-      setZoom(intValue);
-      canvas?.zoomToPoint(canvas.getCenterPoint(), intValue / 100);
+    if (intValue > 0) {
+      setExportQuality(intValue);
     }
   };
+
   const handleFakeFillChange = (e: BaseSyntheticEvent) => {
     const value = e.target.value;
     if (fakeCanvasRect.current) {
@@ -264,11 +265,17 @@ const CanvasSettings = ({ canvas }: Props) => {
       /> */}
       <PTextField
         label="Color:"
-        value={fill?.toString()}
+        value={fill?.toString() || "#FFFFFF"}
         formId="fakeFillForm"
         onChange={handleFakeFillChange}
         type="color"
-        xs={12}
+      />
+      <PTextField
+        label="Export Quality:"
+        value={exportQuality}
+        unit={<i className="ps-1 bi bi-arrows-fullscreen" />}
+        formId="qualityForm"
+        onChange={handleExportQualityChange}
       />
     </Row>
   );

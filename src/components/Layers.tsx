@@ -1,7 +1,8 @@
-import { ActiveSelection, type Canvas, type FabricObject } from 'fabric';
-import React, { useContext, useEffect, useState } from 'react';
-import { Button, CardImg, Col, Row, ToggleButton } from 'react-bootstrap';
-import { FakeCanvasContext } from '../context/FakeCanvasContext';
+import { ActiveSelection, type Canvas, type FabricObject } from "fabric";
+import React, { useContext, useEffect, useState } from "react";
+import { Button, CardImg, Col, Row, ToggleButton } from "react-bootstrap";
+import { FakeCanvasContext } from "../context/FakeCanvasContext";
+import { FocusContext } from "../context/FocusContext";
 
 interface customObjProps {
   isObject?: boolean;
@@ -15,25 +16,26 @@ const Layers = ({ canvas }: { canvas: Canvas }) => {
   const [forceRender, setForceRender] = useState<boolean>(false);
   const [selection, setSelection] = useState<FabricObject[]>([]);
   const { saveCanvasState } = useContext(FakeCanvasContext)!;
+  const { deleteElemetnt } = useContext(FocusContext)!;
   useEffect(() => {
     if (canvas) {
-      canvas.on('object:added', ({ target: obj }) => {
+      canvas.on("object:added", ({ target: obj }) => {
         if ((obj as customObjProps).isObject) {
           recalculateList();
         }
       });
-      canvas.on('object:removed', ({ target: obj }) => {
+      canvas.on("object:removed", ({ target: obj }) => {
         if ((obj as customObjProps).isObject) {
           recalculateList();
         }
       });
-      canvas.on('selection:cleared', () => {
+      canvas.on("selection:cleared", () => {
         setSelection([]);
       });
-      canvas.on('selection:created', (e) => {
+      canvas.on("selection:created", (e) => {
         setSelection(e.selected);
       });
-      canvas.on('selection:updated', (e) => {
+      canvas.on("selection:updated", (e) => {
         setSelection((list) => {
           return [
             ...list.filter((el) => {
@@ -63,7 +65,7 @@ const Layers = ({ canvas }: { canvas: Canvas }) => {
   };
 
   const objIsObject = (obj: FabricObject) => {
-    return (obj as Object).hasOwnProperty('isObject');
+    return (obj as Object).hasOwnProperty("isObject");
   };
   // repositoin them in the canvas.getObjects() array via swap
   const moveLayer = (obj: FabricObject, offset: number) => {
@@ -83,10 +85,10 @@ const Layers = ({ canvas }: { canvas: Canvas }) => {
         arr[i + offset] = obj;
         (arr[i + offset] as customObjProps).originalIndex = i + offset;
       } else {
-        console.log('FAILED');
+        console.log("FAILED");
       }
     } else {
-      console.log('Out of range :(  :', i + offset);
+      console.log("Out of range :(  :", i + offset);
     }
     const activeObj = new ActiveSelection(selection);
     const bgColor = canvas.backgroundColor;
@@ -123,7 +125,7 @@ const Layers = ({ canvas }: { canvas: Canvas }) => {
 
   const handleLock = (el: FabricObject) => {
     el.selectable = !el.selectable;
-    el.set({ hoverCursor: el.selectable ? 'move' : 'default' });
+    el.set({ hoverCursor: el.selectable ? "move" : "default" });
 
     if (!el.selectable && selection.includes(el)) {
       canvas.discardActiveObject();
@@ -137,7 +139,7 @@ const Layers = ({ canvas }: { canvas: Canvas }) => {
   return (
     <div>
       {objList.length ? (
-        <Row>
+        <Row className="mb-1">
           <Button
             className="text-center col-2 border-0"
             variant="outline-secondary"
@@ -156,13 +158,22 @@ const Layers = ({ canvas }: { canvas: Canvas }) => {
           >
             <i className="bi bi-arrow-down"></i>
           </Button>
+          <Button
+            className="text-center col-2 border-0 ms-auto me-2"
+            variant="outline-secondary"
+            onClick={() => {
+              deleteElemetnt();
+            }}
+          >
+            <i className="bi bi-trash3-fill"></i>
+          </Button>
         </Row>
       ) : (
         <div>Add an element to view layers</div>
       )}
       <div
         className="overflow-y-auto h-auto overflow-x-hidden "
-        style={{ overflow: 'auto', maxHeight: '20vh' }}
+        style={{ overflow: "auto", maxHeight: "20vh" }}
       >
         {objList.map((el, i) => {
           return (
@@ -209,7 +220,7 @@ const Layers = ({ canvas }: { canvas: Canvas }) => {
                   });
                 }}
               >
-                <i className={' bi bi-eye' + (el.visible ? '' : '-slash')}></i>
+                <i className={" bi bi-eye" + (el.visible ? "" : "-slash")}></i>
               </Button>
               <Button
                 className="text-center col-2 border-0"
@@ -219,7 +230,7 @@ const Layers = ({ canvas }: { canvas: Canvas }) => {
                 }}
               >
                 <i
-                  className={'bi bi-' + (el.selectable ? 'lock' : 'lock-fill')}
+                  className={"bi bi-" + (el.selectable ? "lock" : "lock-fill")}
                 ></i>
               </Button>
             </Row>

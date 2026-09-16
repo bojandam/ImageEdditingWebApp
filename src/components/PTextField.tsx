@@ -18,7 +18,7 @@ interface Props {
   formId: string;
   onChange: (e: BaseSyntheticEvent) => void;
   type?: string;
-  unit?: string;
+  unit?: string | ReactNode;
   xs?: any;
   trigerSave?: boolean;
 }

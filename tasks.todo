@@ -15,9 +15,9 @@
     ✔ Saving states on text field changes (probably by remembering value on and off focus and saving it) @done (9/12/2026, 10:13:48 PM)
     ✔ Copy, Paste local stuff @done (9/12/2026, 11:21:21 PM)
 
-☐ Add Filter options(Brightnes, Contrast, Hue, Temperature ...)
+✔ Add Filter options(Brightnes, Contrast, Hue, Temperature ...) @done (9/16/2026, 10:33:54 PM)
     ✔ Dropdown Filter adding @done (9/16/2026, 5:20:06 PM)
-    ☐ Individual filter properties added:
+    ✔ Individual filter properties added: @done (9/16/2026, 10:33:55 PM)
         ✔ BlendColor @done (9/16/2026, 9:34:06 PM)
         ✘ BlendImage @cancelled (9/16/2026, 10:21:44 PM)
         ✔ Blur @done (9/16/2026, 5:21:53 PM)
@@ -39,7 +39,7 @@
     ✔ Bin Button @done (9/16/2026, 5:22:15 PM)
     ✘ Add up/down for reordering @cancelled (9/16/2026, 10:22:04 PM)
     
-☐ Add Premade filters
+✘ Add Premade filters @cancelled (9/16/2026, 10:33:48 PM)
 ✔ TEXT (AAAAAARGGHH) @done (9/13/2026, 1:46:23 AM)
 
 
@@ -47,6 +47,8 @@
 Optional:
 ☐ Add Layer selection in order (shift btn selection)
 ☐ Mobile support: Undo, Redo, Delete, Copy, Paste buttons
-☐ Add tiny tooltips while moving for snapping (like in blender)
+✔ Add tiny tooltips while moving for snapping (like in blender) @done (9/16/2026, 10:50:23 PM)
 ☐ Add more Export options (filetype, scale(aka multiplier))
+    ✔ multiplier @done (9/16/2026, 10:50:12 PM)
+    ☐ filetype
 ☐ Add Menu

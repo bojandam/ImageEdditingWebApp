@@ -1,5 +1,5 @@
-import type { Canvas, Point, Rect, TFiller } from 'fabric';
-import { createContext, type RefObject } from 'react';
+import type { Canvas, Point, Rect, TFiller } from "fabric";
+import { createContext, type RefObject } from "react";
 
 interface fakeCavasProps {
   canvas: Canvas | undefined;
@@ -16,6 +16,8 @@ interface fakeCavasProps {
   setFill: (value: React.SetStateAction<string | TFiller | undefined>) => void;
   saveCanvasState: () => void;
   clearHistory: () => void;
+  exportQuality: number;
+  setExportQuality: (value: React.SetStateAction<number>) => void;
 }
 
 export const FakeCanvasContext = createContext<fakeCavasProps | undefined>(

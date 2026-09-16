@@ -12,6 +12,7 @@ import {
   Point,
   Rect,
   Textbox,
+  Triangle,
   util,
   type TFiller,
 } from "fabric";
@@ -34,6 +35,7 @@ const App = () => {
   const [windowWidth, setWindowWidth] = useState<number>(innerWidth);
   const [windowHeight, setWindowHeight] = useState<number>(innerHeight);
   const [zoom, setZoom] = useState<number>(100);
+  const [exportQuality, setExportQuality] = useState(1);
   const canvasRef = useRef(null);
   //Fake canvas refs
   const fakeCanvasRect = useRef<Rect>(null);
@@ -334,6 +336,7 @@ const App = () => {
         );
       },
     },
+
     {
       icon: "circle",
       onClick: () => {
@@ -348,6 +351,22 @@ const App = () => {
       },
     },
     {
+      icon: "triangle",
+      onClick: () => {
+        console.log("Square Clicked");
+        createObject(
+          new Triangle({
+            width: 150,
+            height: 150,
+            top: canvas?.getCenterPoint().y,
+            left: canvas?.getCenterPoint().x,
+            fill: "#FFAAAA",
+            strokeWidth: 0,
+          }),
+        );
+      },
+    },
+    {
       icon: "fonts",
       onClick: () => {
         const textbox = new Textbox("Lorem Impsum", {
@@ -356,53 +375,6 @@ const App = () => {
         });
 
         createObject(textbox);
-      },
-    },
-    {
-      icon: "droplet-half",
-      onClick: () => {
-        if (!canvas) return;
-        const img = canvas.getActiveObject() as FabricImage;
-        if (img.type != "image") return console.log("Not an img!");
-        const filter = new filters.RemoveColor({
-          color: "#000000",
-          distance: 0.15,
-        });
-        img.filters.push(filter);
-        img.applyFilters();
-        filter.color = "#ddc7ac";
-        img.applyFilters();
-
-        canvas.requestRenderAll();
-        saveCanvasState();
-      },
-    },
-    {
-      icon: "droplet-half",
-      onClick: () => {
-        if (!canvas) return;
-        const img = canvas.getActiveObject() as FabricImage;
-        if (img.type != "image") return console.log("Not an img!");
-        const filter = new filters.Blur({
-          color: "#000000",
-          blur: 0.15,
-        });
-        img.filters.push(filter);
-        img.applyFilters();
-
-        canvas.requestRenderAll();
-        saveCanvasState();
-      },
-    },
-    {
-      icon: "droplet",
-      onClick: () => {
-        if (!canvas) return;
-        const img = canvas.getActiveObject() as FabricImage;
-        if (img.type != "image") return console.log("Not an img!");
-        img.filters.length = 0;
-        img.applyFilters();
-        canvas.requestRenderAll();
       },
     },
     {
@@ -432,7 +404,9 @@ const App = () => {
           <canvas id="canvas1" ref={canvasRef}></canvas>
         </div>
       </div>
-      <FocusContext.Provider value={{ isImportaintFocusRef, focusCanvas }}>
+      <FocusContext.Provider
+        value={{ isImportaintFocusRef, focusCanvas, deleteElemetnt }}
+      >
         <FakeCanvasContext.Provider
           value={{
             canvas,
@@ -449,6 +423,8 @@ const App = () => {
             setFill,
             saveCanvasState,
             clearHistory,
+            exportQuality,
+            setExportQuality,
           }}
         >
           <div className="d-flex w-100 h-100 position-fixed top-0 start-0 justify-content-between flex-md-row flex-column align-items-center pe-none">

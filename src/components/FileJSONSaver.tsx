@@ -1,9 +1,9 @@
-import type { Canvas, FabricObject, Rect } from 'fabric';
-import { saveAs } from 'file-saver';
-import React, { useContext } from 'react';
-import { Button } from 'react-bootstrap';
-import { FakeCanvasContext } from '../context/FakeCanvasContext';
-import { FocusContext } from '../context/FocusContext';
+import type { Canvas, FabricObject, Rect } from "fabric";
+import { saveAs } from "file-saver";
+import React, { useContext } from "react";
+import { Button } from "react-bootstrap";
+import { FakeCanvasContext } from "../context/FakeCanvasContext";
+import { FocusContext } from "../context/FocusContext";
 
 interface Props {
   canvas: Canvas;
@@ -19,34 +19,34 @@ export function extendExportedProperties(obj: FabricObject, extended: any[]) {
 }
 
 const FileJSONSaver = ({ canvas, loadJsonToCanvas }: Props) => {
-  const { fakeCanvasRect, saveCanvasState, clearHistory } =
+  const { fakeCanvasRect, saveCanvasState, clearHistory, exportQuality } =
     useContext(FakeCanvasContext)!;
   const { focusCanvas } = useContext(FocusContext)!;
   const handleDownloadCanvas = () => {
     if (!canvas) return;
     const json = canvas.toJSON();
-    const blob = new Blob([JSON.stringify(json)], { type: 'application/json' });
-    saveAs(blob, 'project.json');
+    const blob = new Blob([JSON.stringify(json)], { type: "application/json" });
+    saveAs(blob, "project.json");
   };
   const handleImportCanvas = (e: ReactInputEvent) => {
     if (!e.target.files) return;
     const file = e.target.files[0];
-    console.log('Imported file:', file);
-    if (file && file.type === 'application/json') {
-      console.log('Happened');
+    console.log("Imported file:", file);
+    if (file && file.type === "application/json") {
+      console.log("Happened");
       const fileReader = new FileReader();
       fileReader.onload = () => {
-        console.log('Inside');
+        console.log("Inside");
         try {
           const json = JSON.parse(fileReader.result!.toString());
           loadJsonToCanvas(json).then(() => {
             clearHistory();
             saveCanvasState();
-            console.log('Saved State');
+            console.log("Saved State");
             focusCanvas();
           });
         } catch (error) {
-          console.error('Invalid file', error);
+          console.error("Invalid file", error);
         }
       };
       fileReader.readAsText(file);
@@ -68,14 +68,14 @@ const FileJSONSaver = ({ canvas, loadJsonToCanvas }: Props) => {
     };
     canvas
       .toBlob({
-        multiplier: 1,
+        multiplier: exportQuality || 1,
         quality: 1,
-        format: 'png',
+        format: "png",
         ...getOptions(fakeCanvasRect.current),
       })
       .then((blob) => {
-        if (blob) saveAs(blob, 'Canvas.png');
-        else console.error('Blob generation Failed :(');
+        if (blob) saveAs(blob, "Canvas.png");
+        else console.error("Blob generation Failed :(");
       });
     canvas.setViewportTransform(oldViewTransform);
   };
