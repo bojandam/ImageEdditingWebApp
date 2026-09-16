@@ -29,7 +29,7 @@ interface Props {
 
 interface FilterProps {
   create: () => filters.BaseFilter<any>;
-  properties: Array<{
+  properties?: Array<{
     label: string;
     onChange: (value: any, filter: filters.BaseFilter<any>) => void;
     getValue: (filter: filters.BaseFilter<any>) => any;
@@ -46,8 +46,8 @@ interface FilterProps {
 }
 
 const FiltersList = ({ canvas, selectedObject }: Props) => {
-  //#region Filter Settings
   const Filters: Record<string, FilterProps> = {
+    //#region BlendColor
     BlendColor: {
       create: () => {
         return new filters.BlendColor();
@@ -116,11 +116,9 @@ const FiltersList = ({ canvas, selectedObject }: Props) => {
         },
       ],
     },
-    BlendImage: {
-      create: () => {
-        return new filters.BlendImage();
-      },
-    },
+    //#endregion
+
+    //#region Blur
     Blur: {
       create: () => {
         return new filters.Blur();
@@ -139,6 +137,8 @@ const FiltersList = ({ canvas, selectedObject }: Props) => {
         },
       ],
     },
+    //#endregion
+    //#region Brightness
     Brightness: {
       create: () => {
         return new filters.Brightness();
@@ -148,16 +148,18 @@ const FiltersList = ({ canvas, selectedObject }: Props) => {
           label: "Ammount:",
           type: "range",
           onChange: (val, filter) => {
-            (filter as filters.Brightness).brightness = val / 100;
+            (filter as filters.Brightness).brightness = (val - 50) / 50;
           },
           getValue: (filter) => {
-            return (filter as filters.Brightness).brightness * 100;
+            return (filter as filters.Brightness).brightness * 50 + 50;
           },
           xs: 10,
         },
       ],
     },
+    //#endregion
 
+    //#region Contrast
     Contrast: {
       create: () => {
         return new filters.Contrast();
@@ -176,32 +178,125 @@ const FiltersList = ({ canvas, selectedObject }: Props) => {
         },
       ],
     },
+    //#endregion
 
+    //#region Gamma
     Gamma: {
       create: () => {
         return new filters.Gamma();
       },
+      properties: [
+        {
+          label: "Red:",
+          type: "range",
+          onChange: (val, filter) => {
+            (filter as filters.Gamma).gamma[0] = val * 0.022;
+          },
+          getValue: (filter) => {
+            return (filter as filters.Gamma).gamma[0] / 0.022;
+          },
+          xs: 10,
+        },
+        {
+          label: "Green:",
+          type: "range",
+          onChange: (val, filter) => {
+            (filter as filters.Gamma).gamma[1] = val * 0.022;
+          },
+          getValue: (filter) => {
+            return (filter as filters.Gamma).gamma[1] / 0.022;
+          },
+          xs: 10,
+        },
+        {
+          label: "Blue:",
+          type: "range",
+          onChange: (val, filter) => {
+            (filter as filters.Gamma).gamma[2] = val * 0.022;
+          },
+          getValue: (filter) => {
+            return (filter as filters.Gamma).gamma[2] / 0.022;
+          },
+          xs: 10,
+        },
+      ],
     },
+    //#endregion
+    //#region Grayscale
     Grayscale: {
       create: () => {
         return new filters.Grayscale();
       },
     },
+    //#endregion
+    //#region HueRotation
+    HueRotation: {
+      create: () => {
+        return new filters.HueRotation();
+      },
+      properties: [
+        {
+          label: "Ammount:",
+          type: "range",
+          onChange: (val, filter) => {
+            (filter as filters.HueRotation).rotation = (val - 50) / 50;
+          },
+          getValue: (filter) => {
+            return (filter as filters.HueRotation).rotation * 50 + 50;
+          },
+          xs: 10,
+        },
+      ],
+    },
+    //#endregion
+    //#region Invert
     Invert: {
       create: () => {
         return new filters.Invert();
       },
     },
+    //#endregion
+    //#region Noise
     Noise: {
       create: () => {
         return new filters.Noise();
       },
+      properties: [
+        {
+          label: "Ammount:",
+          type: "range",
+          onChange: (val, filter) => {
+            (filter as filters.Noise).noise = val * 10;
+          },
+          getValue: (filter) => {
+            return (filter as filters.Noise).noise / 10;
+          },
+          xs: 10,
+        },
+      ],
     },
+    //#endregion
+    //#region Pixelate
     Pixelate: {
       create: () => {
         return new filters.Pixelate();
       },
+      properties: [
+        {
+          label: "Ammount:",
+          type: "range",
+          onChange: (val, filter) => {
+            (filter as filters.Pixelate).blocksize = val;
+          },
+          getValue: (filter) => {
+            return (filter as filters.Pixelate).blocksize;
+          },
+          xs: 10,
+        },
+      ],
     },
+    //#endregion
+    //#region RemoveColor
     RemoveColor: {
       create: () => {
         return new filters.RemoveColor();
@@ -232,23 +327,49 @@ const FiltersList = ({ canvas, selectedObject }: Props) => {
         },
       ],
     },
-    Resize: {
-      create: () => {
-        return new filters.Resize();
-      },
-    },
+    //#endregion
+    //#region Saturation
     Saturation: {
       create: () => {
         return new filters.Saturation();
       },
+      properties: [
+        {
+          label: "Ammount:",
+          type: "range",
+          onChange: (val, filter) => {
+            (filter as filters.Saturation).saturation = (val - 50) / 50;
+          },
+          getValue: (filter) => {
+            return (filter as filters.Saturation).saturation * 50 + 50;
+          },
+          xs: 10,
+        },
+      ],
     },
+    //#endregion
+    //#region Vibrance
     Vibrance: {
       create: () => {
         return new filters.Vibrance();
       },
+      properties: [
+        {
+          label: "Ammount:",
+          type: "range",
+          onChange: (val, filter) => {
+            (filter as filters.Vibrance).vibrance = (val - 50) / 50;
+          },
+          getValue: (filter) => {
+            return (filter as filters.Vibrance).vibrance * 50 + 50;
+          },
+          xs: 10,
+        },
+      ],
     },
+    //#endregion
   };
-  //#endregion
+
   const [refresher, setRefresher] = useState(false);
   const filterSelectRef = useRef<HTMLSelectElement>(null);
   const { saveCanvasState } = useContext(FakeCanvasContext)!;
@@ -302,33 +423,34 @@ const FiltersList = ({ canvas, selectedObject }: Props) => {
                   </Accordion.Button>
                   <Accordion.Body>
                     <Row>
-                      {filterData.properties.map((prop) => {
-                        return prop.wholeElement ? (
-                          <prop.wholeElement
-                            filter={filter}
-                            label={prop.label}
-                            onChange={prop.onChange}
-                            getValue={prop.getValue}
-                          />
-                        ) : (
-                          <PTextField
-                            formId={filter.type + prop.label + "Form"}
-                            label={prop.label}
-                            type={prop.type}
-                            onChange={(e) => {
-                              prop.onChange(e.target.value, filter);
-                              selectedObject.applyFilters();
-                              canvas.requestRenderAll();
-                              setRefresher(!refresher);
-                            }}
-                            value={prop.getValue(filter)}
-                            xs={prop.xs}
-                          />
-                        );
-                      })}
+                      {filterData.properties &&
+                        filterData.properties.map((prop) => {
+                          return prop.wholeElement ? (
+                            <prop.wholeElement
+                              filter={filter}
+                              label={prop.label}
+                              onChange={prop.onChange}
+                              getValue={prop.getValue}
+                            />
+                          ) : (
+                            <PTextField
+                              formId={filter.type + prop.label + "Form"}
+                              label={prop.label}
+                              type={prop.type}
+                              onChange={(e) => {
+                                prop.onChange(e.target.value, filter);
+                                selectedObject.applyFilters();
+                                canvas.requestRenderAll();
+                                setRefresher(!refresher);
+                              }}
+                              value={prop.getValue(filter)}
+                              xs={prop.xs}
+                            />
+                          );
+                        })}
 
                       <Button
-                        className="col-2 mt-auto mb-1"
+                        className="col-2 mt-auto mb-1 ms-auto"
                         onClick={() => {
                           selectedObject.filters =
                             selectedObject.filters.filter((_, I) => {
