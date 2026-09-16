@@ -16,6 +16,28 @@
     ✔ Copy, Paste local stuff @done (9/12/2026, 11:21:21 PM)
 
 ☐ Add Filter options(Brightnes, Contrast, Hue, Temperature ...)
+    ✔ Dropdown Filter adding @done (9/16/2026, 5:20:06 PM)
+    ☐ Individual filter properties added:
+        ✔ BlendColor @done (9/16/2026, 9:34:06 PM)
+        ☐ BlendImage
+        ✔ Blur @done (9/16/2026, 5:21:53 PM)
+        ✔ Brightness @done (9/16/2026, 9:37:09 PM)
+        ✘ ColorMatrix @cancelled (9/16/2026, 9:37:11 PM)
+        ✘ Composed @cancelled (9/16/2026, 9:37:12 PM)
+        ✔ Contrast @done (9/16/2026, 9:37:14 PM)
+        ✘ Convolute @cancelled (9/16/2026, 9:38:46 PM)
+        ☐ Gamma
+        ☐ Grayscale
+        ☐ Invert
+        ☐ Noise
+        ☐ Pixelate
+        ✔ RemoveColor @done (9/16/2026, 5:21:56 PM)
+        ☐ Resize
+        ☐ Saturation
+        ☐ Vibrance
+    ✔ Bin Button @done (9/16/2026, 5:22:15 PM)
+    ☐ Add up/down for reordering
+    
 ☐ Add Premade filters
 ✔ TEXT (AAAAAARGGHH) @done (9/13/2026, 1:46:23 AM)
 

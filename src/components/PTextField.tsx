@@ -1,4 +1,4 @@
-import type { TFiller } from 'fabric';
+import type { TFiller } from "fabric";
 import React, {
   useContext,
   useEffect,
@@ -6,10 +6,11 @@ import React, {
   type BaseSyntheticEvent,
   type ReactNode,
   type SyntheticEvent,
-} from 'react';
-import { Col, Form, InputGroup, Row } from 'react-bootstrap';
-import { FocusContext } from '../context/FocusContext';
-import { FakeCanvasContext } from '../context/FakeCanvasContext';
+} from "react";
+import { Col, Form, InputGroup, Row } from "react-bootstrap";
+import { FocusContext } from "../context/FocusContext";
+import { FakeCanvasContext } from "../context/FakeCanvasContext";
+import type FormRange from "react-bootstrap/esm/FormRange";
 
 interface Props {
   label: string | ReactNode;
@@ -47,17 +48,17 @@ const PTextField = ({
   }, [value]);
 
   const handleOnFocus = (e: BaseSyntheticEvent) => {
-    console.log('InsideFocus');
+    console.log("InsideFocus");
     valueRef.current = ongoingValueRef.current = e.target.value;
     isImportaintFocusRef.current = true;
   };
   const handleOnBlur = (e: BaseSyntheticEvent) => {
     console.log(
-      'InsideDefocus: ',
+      "InsideDefocus: ",
       label,
-      ':   ',
+      ":   ",
       valueRef.current,
-      '->',
+      "->",
       e.target.value,
     );
     if (
@@ -65,7 +66,7 @@ const PTextField = ({
       valueRef.current !== undefined &&
       valueRef.current != e.target.value
     ) {
-      console.log('Saved');
+      console.log("Saved");
       saveCanvasState();
     }
     valueRef.current = undefined;
@@ -77,7 +78,7 @@ const PTextField = ({
         hidden={value === undefined}
         xs={xs}
         className="row"
-        style={{ boxSizing: 'content-box' }}
+        style={{ boxSizing: "content-box" }}
       >
         {label && (
           <Form.Label
@@ -88,15 +89,27 @@ const PTextField = ({
           </Form.Label>
         )}
         <InputGroup className="col-9 px-1 my-1">
-          <Form.Control
-            className="border-end-0"
-            type={type || 'number'}
-            id={formId}
-            value={value ?? (type == 'color' ? '#FFFFFF' : '')}
-            onChange={onChange}
-            onFocus={handleOnFocus}
-            onBlur={handleOnBlur}
-          />
+          {type === "range" ? (
+            <Form.Range
+              onChange={onChange}
+              onFocus={handleOnFocus}
+              onBlur={handleOnBlur}
+              min={0}
+              max={100}
+              id={formId}
+              value={value}
+            />
+          ) : (
+            <Form.Control
+              className="border-end-0"
+              type={type || "number"}
+              id={formId}
+              value={value ?? (type == "color" ? "#FFFFFF" : "")}
+              onChange={onChange}
+              onFocus={handleOnFocus}
+              onBlur={handleOnBlur}
+            />
+          )}
           {unit && (
             <InputGroup.Text className="border-start-0 bg-body ps-0" style={{}}>
               {unit}
