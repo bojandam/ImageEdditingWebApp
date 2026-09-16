@@ -156,6 +156,17 @@ const FiltersList = ({ canvas, selectedObject }: Props) => {
             );
           },
         },
+        {
+          label: "Opacity",
+          onChange: (val, filter) => {
+            (filter as filters.BlendColor).alpha = val / 100;
+          },
+          getValue: (filter) => {
+            return (filter as filters.BlendColor).alpha * 100;
+          },
+          type: "range",
+          // xs: 4,
+        },
       ],
     },
     //#endregion

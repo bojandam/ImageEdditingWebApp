@@ -13,7 +13,7 @@ import { FakeCanvasContext } from "../context/FakeCanvasContext";
 import type FormRange from "react-bootstrap/esm/FormRange";
 
 interface Props {
-  label: string | ReactNode;
+  label?: string | ReactNode;
   value: number | string | undefined;
   formId: string;
   onChange: (e: BaseSyntheticEvent) => void;
@@ -21,6 +21,7 @@ interface Props {
   unit?: string | ReactNode;
   xs?: any;
   trigerSave?: boolean;
+  disabled?: boolean;
 }
 
 const PTextField = ({
@@ -32,6 +33,7 @@ const PTextField = ({
   onChange,
   xs = 6,
   trigerSave = true,
+  disabled = false,
 }: Props) => {
   const { isImportaintFocusRef } = useContext(FocusContext)!;
   const { saveCanvasState } = useContext(FakeCanvasContext)!;
@@ -98,6 +100,7 @@ const PTextField = ({
               max={100}
               id={formId}
               value={value}
+              disabled={disabled}
             />
           ) : (
             <Form.Control
@@ -108,6 +111,7 @@ const PTextField = ({
               onChange={onChange}
               onFocus={handleOnFocus}
               onBlur={handleOnBlur}
+              disabled={disabled}
             />
           )}
           {unit && (

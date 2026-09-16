@@ -3,6 +3,7 @@ import React, { useContext, useEffect, useState } from "react";
 import { Button, CardImg, Col, Row, ToggleButton } from "react-bootstrap";
 import { FakeCanvasContext } from "../context/FakeCanvasContext";
 import { FocusContext } from "../context/FocusContext";
+import PTextField from "./PTextField";
 
 interface customObjProps {
   isObject?: boolean;
@@ -158,8 +159,34 @@ const Layers = ({ canvas }: { canvas: Canvas }) => {
           >
             <i className="bi bi-arrow-down"></i>
           </Button>
+          <Col
+            className="text-secondary text-center ms-auto px-0 my-auto"
+            xs={1}
+          >
+            <i className="bi bi-transparency" />
+          </Col>
+          <PTextField
+            disabled={!!!canvas.getActiveObject()}
+            value={
+              canvas.getActiveObject() !== undefined
+                ? canvas.getActiveObject()!.opacity * 100
+                : 100
+            }
+            formId="opacityForm"
+            onChange={(e) => {
+              const intVal = Math.min(
+                100,
+                Math.max(0, Math.round(parseInt(e.target.value))),
+              );
+              canvas.getActiveObject()!.opacity = intVal / 100;
+              canvas.requestRenderAll();
+              setForceRender(!forceRender);
+            }}
+            type="range"
+            xs={3}
+          />
           <Button
-            className="text-center col-2 border-0 ms-auto me-2"
+            className="text-center col-2 border-0 ms-3 me-2"
             variant="outline-secondary"
             onClick={() => {
               deleteElemetnt();
@@ -222,6 +249,7 @@ const Layers = ({ canvas }: { canvas: Canvas }) => {
               >
                 <i className={" bi bi-eye" + (el.visible ? "" : "-slash")}></i>
               </Button>
+
               <Button
                 className="text-center col-2 border-0"
                 variant="outline-secondary"
