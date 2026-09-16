@@ -28,6 +28,7 @@ interface Props {
 }
 
 interface FilterProps {
+  label?: string;
   create: () => filters.BaseFilter<any>;
   properties?: Array<{
     label: string;
@@ -47,8 +48,49 @@ interface FilterProps {
 
 const FiltersList = ({ canvas, selectedObject }: Props) => {
   const Filters: Record<string, FilterProps> = {
+    //#region Blur
+    Blur: {
+      create: () => {
+        return new filters.Blur();
+      },
+      properties: [
+        {
+          label: "Ammount:",
+          type: "range",
+          onChange: (val, filter) => {
+            (filter as filters.Blur).blur = val / 100;
+          },
+          getValue: (filter) => {
+            return (filter as filters.Blur).blur * 100;
+          },
+          xs: 10,
+        },
+      ],
+    },
+    //#endregion
+    //#region Brightness
+    Brightness: {
+      create: () => {
+        return new filters.Brightness();
+      },
+      properties: [
+        {
+          label: "Ammount:",
+          type: "range",
+          onChange: (val, filter) => {
+            (filter as filters.Brightness).brightness = (val - 50) / 50;
+          },
+          getValue: (filter) => {
+            return (filter as filters.Brightness).brightness * 50 + 50;
+          },
+          xs: 10,
+        },
+      ],
+    },
+    //#endregion
     //#region BlendColor
     BlendColor: {
+      label: "Color Overlay",
       create: () => {
         return new filters.BlendColor();
       },
@@ -117,48 +159,6 @@ const FiltersList = ({ canvas, selectedObject }: Props) => {
       ],
     },
     //#endregion
-
-    //#region Blur
-    Blur: {
-      create: () => {
-        return new filters.Blur();
-      },
-      properties: [
-        {
-          label: "Ammount:",
-          type: "range",
-          onChange: (val, filter) => {
-            (filter as filters.Blur).blur = val / 100;
-          },
-          getValue: (filter) => {
-            return (filter as filters.Blur).blur * 100;
-          },
-          xs: 10,
-        },
-      ],
-    },
-    //#endregion
-    //#region Brightness
-    Brightness: {
-      create: () => {
-        return new filters.Brightness();
-      },
-      properties: [
-        {
-          label: "Ammount:",
-          type: "range",
-          onChange: (val, filter) => {
-            (filter as filters.Brightness).brightness = (val - 50) / 50;
-          },
-          getValue: (filter) => {
-            return (filter as filters.Brightness).brightness * 50 + 50;
-          },
-          xs: 10,
-        },
-      ],
-    },
-    //#endregion
-
     //#region Contrast
     Contrast: {
       create: () => {
@@ -298,6 +298,7 @@ const FiltersList = ({ canvas, selectedObject }: Props) => {
     //#endregion
     //#region RemoveColor
     RemoveColor: {
+      label: "Remove Color",
       create: () => {
         return new filters.RemoveColor();
       },
@@ -398,8 +399,8 @@ const FiltersList = ({ canvas, selectedObject }: Props) => {
               ref={filterSelectRef}
               className="ms-2"
             >
-              {Object.keys(Filters).map((el) => {
-                return <option value={el}>{el}</option>;
+              {Object.entries(Filters).map(([key, val]) => {
+                return <option value={key}>{val.label || key}</option>;
               })}
             </Form.Select>
             <Button
@@ -419,7 +420,7 @@ const FiltersList = ({ canvas, selectedObject }: Props) => {
               return (
                 <Accordion.Item eventKey={i.toString()} className="rounded-0">
                   <Accordion.Button className="py-1">
-                    {filter.type}
+                    {Filters[filter.type].label || filter.type}
                   </Accordion.Button>
                   <Accordion.Body>
                     <Row>
