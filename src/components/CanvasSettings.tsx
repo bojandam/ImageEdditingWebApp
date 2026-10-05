@@ -4,8 +4,8 @@ import {
   useState,
   type BaseSyntheticEvent,
   type RefObject,
-} from "react";
-import PTextField from "./PTextField";
+} from 'react';
+import PTextField from './PTextField';
 import {
   FabricObject,
   Point,
@@ -14,11 +14,11 @@ import {
   type TFiller,
   type TPointerEvent,
   type TPointerEventInfo,
-} from "fabric";
-import { Row } from "react-bootstrap";
-import { zoomToFitObject } from "../util/Transformations";
-import { extendExportedProperties } from "./FileJSONSaver";
-import { FakeCanvasContext } from "../context/FakeCanvasContext";
+} from 'fabric';
+import { Row } from 'react-bootstrap';
+import { zoomToFitObject } from '../util/Transformations';
+import { extendExportedProperties } from './FileJSONSaver';
+import { FakeCanvasContext } from '../context/FakeCanvasContext';
 
 interface Props {
   canvas: Canvas | undefined;
@@ -45,7 +45,7 @@ const CanvasSettings = ({ canvas }: Props) => {
   const [width, setWidth] = useState<number>();
   const [height, setHeight] = useState<number>();
 
-  //dimensions setup
+  //#region Dimensions setup
   useEffect(() => {
     if (width === undefined || height === undefined) {
       setWidth(canvas?.width);
@@ -55,10 +55,11 @@ const CanvasSettings = ({ canvas }: Props) => {
       setZoom(canvas.getZoom() * 100);
     }
   }, [canvas]);
-  //Creating Rect, Group, Clip
+  //#endregion
+  //#region Creating Rect, Group, Clip
   useEffect(() => {
     if (canvas && fakeCanvasRect && !fakeCanvasRect.current) {
-      console.log("fakeCanvas Made");
+      console.log('fakeCanvas Made');
       if (fakeCanvasCenter)
         fakeCanvasCenter.current = new Point(canvas.getCenterPoint());
 
@@ -81,15 +82,15 @@ const CanvasSettings = ({ canvas }: Props) => {
         height: canvas.height,
         left: canvas.getCenterPoint().x,
         top: canvas.getCenterPoint().y,
-        fill: "#FFFFFF",
+        fill: '#FFFFFF',
         selectable: false,
-        hoverCursor: "default",
+        hoverCursor: 'default',
         stroke: null,
         strokeWidth: 0,
       });
       extendExportedProperties(fakeCanvasRect.current, [
-        "selectable",
-        "hoverCursor",
+        'selectable',
+        'hoverCursor',
       ]);
       setFill(fakeCanvasRect.current.fill!);
       if (fakeCanvasClip && fakeCanvasClip.current)
@@ -100,8 +101,8 @@ const CanvasSettings = ({ canvas }: Props) => {
       canvas.requestRenderAll();
     }
   }, [canvas]);
-
-  // Reposition on window size change
+  //#endregion
+  //#region Reposition on window size change
   useEffect(() => {
     if (canvas) {
       canvas.setDimensions({ width: width, height: height });
@@ -117,9 +118,9 @@ const CanvasSettings = ({ canvas }: Props) => {
         };
         translate(fakeCanvasClip.current, dX, dY);
         canvas.getObjects().forEach((el) => {
-          console.log("Before: ", el.left);
+          console.log('Before: ', el.left);
           translate(el, dX, dY);
-          console.log("After: ", el.left);
+          console.log('After: ', el.left);
           console.log(el);
           el.setCoords();
         });
@@ -129,8 +130,8 @@ const CanvasSettings = ({ canvas }: Props) => {
       }
     }
   }, [width, height, canvas]);
-
-  // Set fakeCanvas dimensions
+  //#endregion
+  //#region Set fakeCanvas dimensions
   useEffect(() => {
     if (fakeCanvasClip.current && fakeCanvasRect.current && canvas) {
       fakeCanvasRect.current.set({
@@ -143,24 +144,26 @@ const CanvasSettings = ({ canvas }: Props) => {
       });
 
       fakeCanvasRect.current.setCoords();
-      console.log("Resizing fake canvas: ", fakeCanvasRect.current);
+      console.log('Resizing fake canvas: ', fakeCanvasRect.current);
       if (!(canvas as any).FirstTimeResizing) {
         (canvas as any).FirstTimeResizing = true;
         saveCanvasState();
-        console.log("First time save");
+        console.log('First time save');
       }
       canvas.renderAll();
     }
   }, [fakeWidth, fakeHeight, canvas]);
 
   useEffect(() => {
-    window.addEventListener("resize", resizeCanvas);
+    window.addEventListener('resize', resizeCanvas);
     resizeCanvas();
   }, []);
-  //Zoom & Pan, (kopirano od fabric.js docs p5)
+  //#endregion
+  //#region Zoom & Pan
+  //(kopirano od fabric.js docs p5)
   useEffect(() => {
     if (canvas) {
-      canvas.on("mouse:down", function (this: any, opt) {
+      canvas.on('mouse:down', function (this: any, opt) {
         var evt: any = opt.e;
         console.log(opt);
         if (evt.altKey === true || evt.button === 1) {
@@ -170,7 +173,7 @@ const CanvasSettings = ({ canvas }: Props) => {
           this.lastPosY = evt.clientY;
         }
       });
-      canvas.on("mouse:move", function (this: any, opt) {
+      canvas.on('mouse:move', function (this: any, opt) {
         if (this.isDragging) {
           var e: any = opt.e;
           var vpt = this.viewportTransform;
@@ -182,12 +185,12 @@ const CanvasSettings = ({ canvas }: Props) => {
           this.lastPosY = e.clientY;
         }
       });
-      canvas.on("mouse:up", function (this: any) {
+      canvas.on('mouse:up', function (this: any) {
         this.setViewportTransform(this.viewportTransform);
         this.isDragging = false;
         this.selection = true;
       });
-      canvas.on("mouse:wheel", function (opt) {
+      canvas.on('mouse:wheel', function (opt) {
         var delta = opt.e.deltaY;
         var zoom = canvas.getZoom();
         zoom *= 0.999 ** delta;
@@ -201,9 +204,9 @@ const CanvasSettings = ({ canvas }: Props) => {
       });
     }
   }, [canvas]);
-
+  //#endregion
   const resizeCanvas = () => {
-    console.log("windwos size changed");
+    console.log('windwos size changed');
     setWidth(innerWidth - 15);
     setHeight(innerHeight - 15);
   };
@@ -265,7 +268,7 @@ const CanvasSettings = ({ canvas }: Props) => {
       /> */}
       <PTextField
         label="Color:"
-        value={fill?.toString() || "#FFFFFF"}
+        value={fill?.toString() || '#FFFFFF'}
         formId="fakeFillForm"
         onChange={handleFakeFillChange}
         type="color"
@@ -281,6 +284,6 @@ const CanvasSettings = ({ canvas }: Props) => {
   );
 };
 const parseToInt = (x: string) => {
-  return x === "" ? 0 : parseInt(x.replace(/,/g, ""), 10);
+  return x === '' ? 0 : parseInt(x.replace(/,/g, ''), 10);
 };
 export default CanvasSettings;
